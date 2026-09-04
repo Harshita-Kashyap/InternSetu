@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: internsetu-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-internsetu}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-internsetu_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-internsetu}
+    ports:
+      - "5432:5432"
+    volumes:
+      - internsetu_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  internsetu_postgres_data:
+    external: true
