@@ -14,4 +14,4 @@ services:
 
 volumes:
   internsetu_postgres_data:
-    external: true
+  
