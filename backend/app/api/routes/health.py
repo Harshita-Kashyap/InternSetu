@@ -1,11 +1,19 @@
 from fastapi import APIRouter
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
 
-router = APIRouter()
+from app.core.deps import DbSession
+
+router = APIRouter(tags=["Health"])
 
 
 @router.get("/health")
-def health_check():
-    return {
-        "status": "ok",
-        "service": "InternSetu API",
-    }
+def health_check(db: DbSession):
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "degraded", "service": "InternSetu API", "database": "unavailable"},
+        )
+    return {"status": "ok", "service": "InternSetu API", "database": "ok"}
