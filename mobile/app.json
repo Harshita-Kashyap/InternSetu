@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "InternSetu",
+    "slug": "internsetu",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#fbf6e9",
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#fbf6e9"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.internsetu.app"
+    },
+    "android": {
+      "package": "com.internsetu.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#fbf6e9"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-asset"
+    ]
+  }
+}
