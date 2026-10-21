@@ -1,0 +1,36 @@
+
+{
+  "Login": {
+    "welcome": "Welcome back",
+    "heading": "Sign in to InternSetu",
+    "subtitle": "Your pathway to meaningful internship opportunities.",
+    "username": "Username",
+    "usernamePlaceholder": "Enter your username",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "login": "Login",
+    "register": "Register",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "secureFooter": "Secure & simple access to InternSetu",
+    "showPassword": "Show",
+    "hidePassword": "Hide",
+    "passwordRequired": "Please enter your username and password."
+    },
+  "Profile": {
+  "eyebrow": "LET'S GET STARTED",
+  "heading": "Let's find the right internship for you",
+  "description": "Tell us about your education, skills, and preferences so we can personalize your internship recommendations.",
+  "completion": "details added",
+  "educationLevel": "Education level",
+  "degree": "Degree / Course",
+  "degreePlaceholder": "e.g. B.Tech, B.Com, BBA",
+  "field": "Field of study",
+  "fieldPlaceholder": "e.g. Computer Science",
+  "college": "College / Institution",
+  "collegePlaceholder": "Enter your college or institution",
+  "continue": "Continue",
+  "validation": "Please fill in your degree, field of study and college."
+}
+}
+

@@ -1,6 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Header from "../../components/Header";
+import Stepper from "../../components/Stepper";
+import { useToast } from "../../components/Toast";
+import { loadProfile, saveProfile } from "../../lib/store";
 
 const skills = [
   "Python",
@@ -29,8 +34,16 @@ const interests = [
 ];
 
 export default function SkillsPage() {
+  const router = useRouter();
+  const { toast, show } = useToast();
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+
+  useEffect(() => {
+    const p = loadProfile();
+    if (p.skills) setSelectedSkills(p.skills);
+    if (p.interests) setSelectedInterests(p.interests);
+  }, []);
 
   const toggleSkill = (skill: string) => {
     setSelectedSkills((current) =>
@@ -50,28 +63,10 @@ export default function SkillsPage() {
 
   return (
     <main className="profile-page">
-      <header className="profile-header">
-        <div className="profile-brand">
-          <span>InternSetu</span>
-        </div>
-
-        <div className="profile-header-right">
-          <span>Profile Setup</span>
-
-          <button
-            type="button"
-            className="logout-button"
-            onClick={() => {
-              window.location.href = "/";
-            }}
-          >
-            Logout
-          </button>
-        </div>
-      </header>
+      <Header />
 
       <section className="profile-container">
-        <div className="profile-card skills-card">
+        <div className="profile-card skills-card card-rise">
           <div className="profile-intro">
             <p className="profile-eyebrow">STEP 2 OF 3</p>
 
@@ -83,26 +78,7 @@ export default function SkillsPage() {
             </p>
           </div>
 
-          <div className="progress-section">
-            <div className="progress-step completed">
-              <div className="step-circle">✓</div>
-              <span>Education</span>
-            </div>
-
-            <div className="progress-line active"></div>
-
-            <div className="progress-step active">
-              <div className="step-circle">2</div>
-              <span>Skills &amp; Interests</span>
-            </div>
-
-            <div className="progress-line"></div>
-
-            <div className="progress-step">
-              <div className="step-circle">3</div>
-              <span>Preferences</span>
-            </div>
-          </div>
+          <Stepper current={2} />
 
           <div className="skills-section">
             <div className="section-heading">
@@ -111,7 +87,7 @@ export default function SkillsPage() {
                 <p>Select all that apply.</p>
               </div>
 
-              <span className="selection-count">
+              <span className="selection-count" key={selectedSkills.length}>
                 {selectedSkills.length} selected
               </span>
             </div>
@@ -171,9 +147,7 @@ export default function SkillsPage() {
             <button
               type="button"
               className="back-button"
-              onClick={() => {
-                window.location.href = "/profile";
-              }}
+              onClick={() => router.push("/profile")}
             >
               ← Back
             </button>
@@ -182,17 +156,10 @@ export default function SkillsPage() {
               type="button"
               className="profile-continue"
               onClick={() => {
-                if (selectedSkills.length === 0) {
-                  alert("Please select at least one skill.");
-                  return;
-                }
-
-                if (selectedInterests.length === 0) {
-                  alert("Please select at least one interest.");
-                  return;
-                }
-
-                window.location.href = "/profile/preferences";
+                if (selectedSkills.length === 0) return show("Please select at least one skill.");
+                if (selectedInterests.length === 0) return show("Please select at least one interest.");
+                saveProfile({ skills: selectedSkills, interests: selectedInterests });
+                router.push("/profile/preferences");
               }}
             >
               Continue
@@ -201,6 +168,7 @@ export default function SkillsPage() {
           </div>
         </div>
       </section>
+      {toast}
     </main>
   );
 }

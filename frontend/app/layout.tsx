@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Splash from "./components/Splash";
 
 export const metadata: Metadata = {
   title: "InternSetu",
   description: "Your pathway to meaningful internship opportunities",
+  icons: { icon: "/logo-mark.png" },
 };
 
 export default function RootLayout({
@@ -13,7 +15,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Splash />
+        {children}
+      </body>
     </html>
   );
 }
