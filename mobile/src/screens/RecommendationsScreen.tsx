@@ -1,83 +1,66 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../types";
 import Header from "../components/Header";
 import FadeIn from "../components/FadeIn";
 import Ring from "../components/Ring";
+import Button from "../components/Button";
 import { useToast } from "../components/Toast";
-import { internships, score } from "../data";
-import { loadProfile, Profile } from "../store";
+import { api, ApiError, RecommendationsResponse } from "../api";
 import { colors, fonts, shadow } from "../theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Recommendations">;
 
-function DomainBar({ label, value }: { label: string; value: number }) {
-  const v = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.timing(v, { toValue: value, duration: 1000, delay: 250, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start();
-  }, [v, value]);
-  return (
-    <View style={styles.barRow}>
-      <Text style={styles.barLabel} numberOfLines={1}>{label}</Text>
-      <View style={styles.bar}>
-        <Animated.View style={[styles.barFill, { width: v.interpolate({ inputRange: [0, 100], outputRange: ["0%", "100%"] }) }]} />
-      </View>
-      <Text style={styles.barVal}>{value}%</Text>
-    </View>
-  );
-}
-
 export default function RecommendationsScreen({ navigation }: Props) {
   const toast = useToast();
-  const [profile, setProfile] = useState<Profile>({});
-  const [mode, setMode] = useState("All");
-  const [saved, setSaved] = useState<number[]>([]);
-  const [applied, setApplied] = useState<number[]>([]);
+  const [data, setData] = useState<RecommendationsResponse | null>(null);
+  const [saved, setSaved] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => { loadProfile().then(setProfile); }, []);
+  const load = useCallback(async (pull = false) => {
+    pull ? setRefreshing(true) : setLoading(true);
+    setError(null);
+    try {
+      const [r, s] = await Promise.all([api.recommendations(), api.saved().catch(() => [])]);
+      setData(r);
+      setSaved(s.map((x) => x.internship_id));
+    } catch (e) {
+      if (e instanceof ApiError && e.code === "profile_incomplete") { toast("Please complete your profile first."); navigation.reset({ index: 0, routes: [{ name: "Profile" }] }); return; }
+      if (e instanceof ApiError && e.code === "consent_required") { navigation.reset({ index: 0, routes: [{ name: "Consent" }] }); return; }
+      setError(e instanceof ApiError ? e.message : "Could not load recommendations.");
+    } finally { setLoading(false); setRefreshing(false); }
+  }, [navigation, toast]);
 
-  const ranked = useMemo(
-    () => internships.map((j) => ({ ...j, match: score(j, profile) })).sort((a, b) => b.match - a.match),
-    [profile]
-  );
-  const list = ranked.filter((j) => mode === "All" || j.mode === mode);
-  const strong = ranked.filter((j) => j.match >= 70).length;
-  const mySkills = profile.skills ?? [];
+  useEffect(() => { load(); }, [load]);
 
-  const domainStats = (profile.domains ?? []).map((d) => {
-    const items = ranked.filter((j) => j.domain === d);
-    return { d, avg: items.length ? Math.round(items.reduce((a, j) => a + j.match, 0) / items.length) : 0 };
-  });
+  const toggleSave = async (id: string) => {
+    const on = saved.includes(id);
+    setSaved((c) => (on ? c.filter((x) => x !== id) : [...c, id]));
+    try { await (on ? api.unsave(id) : api.save(id)); toast(on ? "Removed from saved." : "Saved for later.", "success"); }
+    catch (e) { setSaved((c) => (on ? [...c, id] : c.filter((x) => x !== id))); toast(e instanceof ApiError ? e.message : "Could not update saved list."); }
+  };
+  const apply = (url: string) => Linking.openURL(url).catch(() => toast("Could not open the PMIS portal link."));
 
-  const toggleSave = useCallback((id: number) => {
-    setSaved((cur) => {
-      const had = cur.includes(id);
-      toast(had ? "Removed from saved." : "Saved for later.", "success");
-      return had ? cur.filter((x) => x !== id) : [...cur, id];
-    });
-  }, [toast]);
+  const recs = data?.recommendations ?? [];
+  const best = recs.length ? Math.max(...recs.map((r) => r.match_percentage)) : 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.cream }}>
       <Header />
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 50 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 50 }} showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={colors.teal} />}>
         <FadeIn>
           <LinearGradient colors={["#1d565d", "#256b73", "#3c8a8a"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
             <Text style={styles.eyebrow}>PERSONALISED FOR YOU</Text>
             <Text style={styles.h1}>Your internship matches</Text>
-            <Text style={styles.heroSub}>
-              {profile.degree
-                ? `Based on your ${profile.degree}${profile.field ? ` in ${profile.field}` : ""}, your skills and your preferences.`
-                : "Complete your profile for sharper, more personal matches."}
-            </Text>
+            <Text style={styles.heroSub}>Ranked by skills, education, location and interests, with reasons for each match.</Text>
             <View style={styles.stats}>
-              {[[ranked.length, "Internships"], [strong, "Strong matches"], [mySkills.length, "Your skills"]].map(([n, l]) => (
-                <View key={l as string} style={styles.stat}>
-                  <Text style={styles.statN}>{n}</Text>
-                  <Text style={styles.statL}>{l}</Text>
-                </View>
+              {[[data?.eligible_count ?? "–", "Eligible"], [recs.length, "Top picks"], [best ? `${best}%` : "–", "Best match"]].map(([n, l]) => (
+                <View key={l as string} style={styles.stat}><Text style={styles.statN}>{n}</Text><Text style={styles.statL}>{l}</Text></View>
               ))}
             </View>
             <View style={styles.heroBtns}>
@@ -87,59 +70,84 @@ export default function RecommendationsScreen({ navigation }: Props) {
           </LinearGradient>
         </FadeIn>
 
-        {domainStats.length > 0 && (
-          <FadeIn delay={120} style={styles.panel}>
-            <Text style={styles.panelH}>Match by domain</Text>
-            {domainStats.map((s) => <DomainBar key={s.d} label={s.d} value={s.avg} />)}
-          </FadeIn>
-        )}
+        {loading ? <ActivityIndicator color={colors.teal} size="large" style={{ marginTop: 40 }} /> : null}
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
-          {["All", "Remote", "Hybrid", "On-site"].map((m) => (
-            <Pressable key={m} onPress={() => setMode(m)} style={[styles.filter, mode === m && styles.filterOn]}>
-              <Text style={[styles.filterTxt, mode === m && { color: "#fff" }]}>{m}</Text>
-            </Pressable>
-          ))}
-        </ScrollView>
+        {error ? (
+          <View style={[styles.panel, { alignItems: "center" }]}>
+            <Text style={styles.panelH}>Something went wrong</Text>
+            <Text style={[styles.note, { textAlign: "center", marginBottom: 14 }]}>{error}</Text>
+            <Button title="Try again" onPress={() => load()} />
+          </View>
+        ) : null}
 
-        {list.map((j, i) => (
-          <FadeIn key={j.id} delay={Math.min(i, 6) * 70} style={styles.card}>
-            <View style={styles.top}>
-              <View style={styles.avatar}><Text style={styles.avatarTxt}>{j.company.charAt(0)}</Text></View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.title}>{j.title}</Text>
-                <Text style={styles.company}>{j.company} · {j.city}</Text>
+        {data?.demo_notice ? <View style={styles.demo}><Text style={styles.demoTxt}>{data.demo_notice}</Text></View> : null}
+        {data && !recs.length && !error ? (
+          <View style={styles.panel}>
+            <Text style={styles.panelH}>No eligible internships yet</Text>
+            <Text style={styles.note}>{data.message || "Try adding more skills or widening your preferences."}</Text>
+            {data.nearest.map((n) => (
+              <View key={n.internship_id} style={styles.near}>
+                <Text style={styles.title}>{n.title}</Text>
+                <Text style={styles.company}>{n.company_name} · {n.location_name}</Text>
+                <Text style={styles.note}>{n.reason}</Text>
+                {n.missing_mandatory.length ? <Text style={styles.note}>Missing: {n.missing_mandatory.join(", ")}</Text> : null}
               </View>
-              <Ring value={j.match} />
-            </View>
-            <View style={styles.tags}>
-              <Text style={[styles.tag, styles.tagDomain]}>{j.domain}</Text>
-              <Text style={styles.tag}>{j.mode}</Text>
-              <Text style={styles.tag}>{j.duration}</Text>
-            </View>
-            <View style={styles.tags}>
-              {j.skills.map((k) => {
-                const have = mySkills.includes(k);
-                return <Text key={k} style={[styles.skill, have && styles.skillHave]}>{have ? "✓ " : ""}{k}</Text>;
-              })}
-            </View>
-            <View style={styles.bottom}>
-              <Text style={styles.stipend}>{j.stipend}</Text>
-              <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-                <Pressable onPress={() => toggleSave(j.id)} style={[styles.save, saved.includes(j.id) && styles.saveOn]}>
-                  <Text style={{ fontSize: 18, color: saved.includes(j.id) ? colors.rose : colors.muted }}>{saved.includes(j.id) ? "♥" : "♡"}</Text>
-                </Pressable>
-                <Pressable
-                  disabled={applied.includes(j.id)}
-                  onPress={() => { setApplied((a) => [...a, j.id]); toast(`Applied to ${j.company}!`, "success"); }}
-                  style={[styles.apply, applied.includes(j.id) && { backgroundColor: colors.success }]}
-                >
-                  <Text style={styles.applyTxt}>{applied.includes(j.id) ? "Applied ✓" : "Apply"}</Text>
-                </Pressable>
+            ))}
+          </View>
+        ) : null}
+
+        {recs.map((j, i) => {
+          const isSaved = saved.includes(j.internship_id);
+          const gaps = [...j.skill_gap.missing_mandatory, ...j.skill_gap.missing_preferred];
+          return (
+            <FadeIn key={j.internship_id} delay={Math.min(i, 6) * 70} style={styles.card}>
+              <View style={styles.top}>
+                <View style={styles.avatar}><Text style={styles.avatarTxt}>{j.company_name.charAt(0)}</Text></View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.title}>{j.title}</Text>
+                  <Text style={styles.company}>{j.company_name} · {j.location_name}</Text>
+                </View>
+                <Ring value={j.match_percentage} />
               </View>
-            </View>
-          </FadeIn>
-        ))}
+              <View style={styles.tags}>
+                <Text style={[styles.tag, styles.tagDomain]}>{j.sector_name}</Text>
+                {j.role_name ? <Text style={styles.tag}>{j.role_name}</Text> : null}
+                {j.duration ? <Text style={styles.tag}>{j.duration}</Text> : null}
+                {j.match_tag ? <Text style={styles.tag}>{j.match_tag}</Text> : null}
+                {j.is_demo_data ? <Text style={styles.tag}>Demo data</Text> : null}
+              </View>
+              {j.why_recommended.length ? (
+                <View style={styles.block}>
+                  <Text style={styles.blockH}>Why recommended</Text>
+                  {j.why_recommended.map((w, k) => <Text key={k} style={styles.line}>✓ {w}</Text>)}
+                </View>
+              ) : null}
+              {j.considerations.length ? (
+                <View style={styles.block}>
+                  <Text style={styles.blockH}>Keep in mind</Text>
+                  {j.considerations.map((w, k) => <Text key={k} style={styles.line}>• {w}</Text>)}
+                </View>
+              ) : null}
+              {gaps.length ? (
+                <View style={styles.block}>
+                  <Text style={styles.blockH}>Skills to build</Text>
+                  <View style={styles.tags}>{gaps.map((k) => <Text key={k} style={styles.skill}>{k}</Text>)}</View>
+                </View>
+              ) : null}
+              <View style={styles.bottom}>
+                <Text style={styles.stipend}>{j.stipend_inr_per_month != null ? `₹${j.stipend_inr_per_month.toLocaleString("en-IN")}/mo` : "Stipend not listed"}</Text>
+                <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+                  <Pressable onPress={() => toggleSave(j.internship_id)} style={[styles.save, isSaved && styles.saveOn]}>
+                    <Text style={{ fontSize: 18, color: isSaved ? colors.rose : colors.muted }}>{isSaved ? "♥" : "♡"}</Text>
+                  </Pressable>
+                  <Pressable onPress={() => apply(j.apply_url)} style={styles.apply}><Text style={styles.applyTxt}>Apply on PMIS</Text></Pressable>
+                </View>
+              </View>
+            </FadeIn>
+          );
+        })}
+
+        {data ? <Text style={styles.disclaimer}>{data.disclaimer}</Text> : null}
       </ScrollView>
     </View>
   );
@@ -165,6 +173,14 @@ const styles = StyleSheet.create({
   bar: { flex: 1, height: 10, borderRadius: 10, backgroundColor: colors.track, overflow: "hidden" },
   barFill: { height: "100%", borderRadius: 10, backgroundColor: colors.teal },
   barVal: { width: 40, textAlign: "right", fontSize: 13, fontFamily: fonts.bold, color: colors.tealDark },
+  note: { fontSize: 13, color: colors.muted, lineHeight: 19, fontFamily: fonts.body, marginTop: 4 },
+  near: { marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: "#edf0ef" },
+  demo: { marginTop: 14, padding: 12, borderRadius: 12, backgroundColor: "#fff7e0", borderWidth: 1, borderColor: "#f1deaa" },
+  demoTxt: { fontSize: 12.5, color: "#7a5b00", lineHeight: 18, fontFamily: fonts.body },
+  block: { marginTop: 14 },
+  blockH: { fontSize: 12.5, fontFamily: fonts.bold, color: colors.tealDark, marginBottom: 6 },
+  line: { fontSize: 13, color: colors.text, lineHeight: 19, fontFamily: fonts.body, marginBottom: 3 },
+  disclaimer: { fontSize: 11.5, color: "#8a969b", lineHeight: 17, textAlign: "center", marginTop: 8, fontFamily: fonts.body },
   filters: { gap: 8, paddingVertical: 20 },
   filter: { paddingVertical: 8, paddingHorizontal: 18, borderRadius: 999, borderWidth: 1, borderColor: colors.border, backgroundColor: "#fff" },
   filterOn: { backgroundColor: colors.teal, borderColor: colors.teal },

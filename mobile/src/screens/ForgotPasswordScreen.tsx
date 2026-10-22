@@ -7,6 +7,7 @@ import Field from "../components/Field";
 import Button from "../components/Button";
 import FadeIn from "../components/FadeIn";
 import { useToast } from "../components/Toast";
+import { api } from "../api";
 import { colors, fonts } from "../theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ForgotPassword">;
@@ -31,7 +32,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
       ) : (
         <>
           <Field label="Email" placeholder="you@example.com" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-          <Button title="Send reset link" onPress={() => (/^\S+@\S+\.\S+$/.test(email) ? setSent(true) : toast("Please enter a valid email."))} />
+          <Button title="Send reset link" onPress={async () => { if (!/^\S+@\S+\.\S+$/.test(email)) return toast("Please enter a valid email."); await api.forgotPassword(email.trim()).catch(() => {}); setSent(true); }} />
         </>
       )}
       <Text style={[styles.link, { textAlign: "center", marginTop: 22 }]} onPress={() => navigation.navigate("Login")}>← Back to login</Text>

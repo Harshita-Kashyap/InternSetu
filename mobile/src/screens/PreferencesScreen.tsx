@@ -4,50 +4,58 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../types";
 import SetupLayout, { setupStyles as s } from "./SetupLayout";
 import Choice from "../components/Choice";
+import TaxPicker from "../components/TaxPicker";
 import Button from "../components/Button";
 import { useToast } from "../components/Toast";
-import { interests as domains, locations, workModes } from "../data";
-import { loadProfile, saveProfile } from "../store";
+import { workModes } from "../data";
+import { loadProfileRemote, saveProfileRemote } from "../store";
+import { useTax } from "../taxo";
+import { api, ApiError } from "../api";
 import { colors, fonts } from "../theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Preferences">;
 
 export default function PreferencesScreen({ navigation }: Props) {
   const toast = useToast();
-  const [location, setLocation] = useState("Any location");
+  const [location, setLocation] = useState("");
+  const [saving, setSaving] = useState(false);
+  const city = useTax("city");
+  const sec = useTax("sector");
   const [relocate, setRelocate] = useState("");
   const [workMode, setWorkMode] = useState("");
   const [selDomains, setSelDomains] = useState<string[]>([]);
 
   useEffect(() => {
-    loadProfile().then((p) => {
+    loadProfileRemote().then((p) => {
       if (p.location) setLocation(p.location);
       if (p.relocate) setRelocate(p.relocate);
       if (p.workMode) setWorkMode(p.workMode);
       if (p.domains) setSelDomains(p.domains);
-      else if (p.interests) setSelDomains(p.interests);
     });
   }, []);
 
   const finish = async () => {
+    if (!location) return toast("Please choose your home city.");
     if (!relocate) return toast("Please tell us whether you are willing to relocate.");
     if (!workMode) return toast("Please select your preferred work mode.");
     if (!selDomains.length) return toast("Please select at least one preferred domain.");
-    await saveProfile({ location, relocate, workMode, domains: selDomains });
-    navigation.reset({ index: 0, routes: [{ name: "Recommendations" }] });
+    setSaving(true);
+    try {
+      await saveProfileRemote({ location, relocate, workMode, domains: selDomains });
+      const p = await api.confirmProfile();
+      if (p.status !== "complete") { setSaving(false); return toast("Please complete your profile first."); }
+      navigation.reset({ index: 0, routes: [{ name: "Recommendations" }] });
+    } catch (e) {
+      if (e instanceof ApiError && e.code === "consent_required") navigation.reset({ index: 0, routes: [{ name: "Consent" }] });
+      else toast(e instanceof Error ? e.message : "Could not save your preferences.");
+      setSaving(false);
+    }
   };
 
   return (
     <SetupLayout step={3} eyebrow="STEP 3 OF 3" title="Where would you like to work?" subtitle="Tell us about your location and work preferences so we can find opportunities that fit your situation.">
-      <Text style={s.h2}>Preferred location</Text>
-      <View style={styles.chips}>
-        {locations.map((l) => (
-          <Pressable key={l} onPress={() => setLocation(l)} style={[styles.pill, location === l && styles.pillOn]}>
-            <Text style={[styles.pillTxt, location === l && { color: "#fff" }]}>{l}</Text>
-          </Pressable>
-        ))}
-      </View>
-      <Text style={styles.hint}>Choose &quot;Any location&quot; if you are open to opportunities anywhere in India.</Text>
+      <Text style={s.h2}>Home city</Text>
+      <TaxPicker single options={city.names} loading={city.loading} selected={location ? [location] : []} onChange={(v) => setLocation(v[0] || "")} placeholder="Search your city" />
 
       <View style={s.section}>
         <Text style={s.h2}>Are you willing to relocate?</Text>
@@ -73,15 +81,11 @@ export default function PreferencesScreen({ navigation }: Props) {
       <View style={s.section}>
         <Text style={s.h2}>Preferred domains</Text>
         <Text style={s.p}>Select the areas you would like to explore.</Text>
-        <View style={s.grid}>
-          {domains.map((d) => (
-            <Choice key={d} label={d} selected={selDomains.includes(d)} onPress={() => setSelDomains(selDomains.includes(d) ? selDomains.filter((x) => x !== d) : [...selDomains, d])} />
-          ))}
-        </View>
+        <TaxPicker options={sec.names} loading={sec.loading} selected={selDomains} onChange={setSelDomains} placeholder="Search sectors" />
       </View>
 
       <View style={s.actions}>
-        <Button title="Find my internships" arrow onPress={finish} />
+        <Button title="Find my internships" arrow onPress={finish} loading={saving} />
         <Text style={s.back} onPress={() => navigation.navigate("Skills")}>← Back</Text>
       </View>
     </SetupLayout>

@@ -5,6 +5,7 @@ import { StatusBar } from "expo-status-bar";
 import {
   NavigationContainer,
   DefaultTheme,
+  createNavigationContainerRef,
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -24,7 +25,7 @@ import {
 
 import type { RootStackParamList } from "./src/types";
 import { colors } from "./src/theme";
-import { getSession } from "./src/store";
+import { api, ApiError, getToken, setUnauthorizedHandler } from "./src/api";
 import { ToastProvider } from "./src/components/Toast";
 
 import LoginScreen from "./src/screens/LoginScreen";
@@ -33,9 +34,11 @@ import ForgotPasswordScreen from "./src/screens/ForgotPasswordScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import SkillsScreen from "./src/screens/SkillsScreen";
 import PreferencesScreen from "./src/screens/PreferencesScreen";
+import ConsentScreen from "./src/screens/ConsentScreen";
 import RecommendationsScreen from "./src/screens/RecommendationsScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const navRef = createNavigationContainerRef<RootStackParamList>();
 
 const navTheme = {
   ...DefaultTheme,
@@ -64,25 +67,25 @@ export default function App() {
   useEffect(() => {
     let mounted = true;
 
-    getSession()
-      .then((user) => {
-        if (mounted) {
-          setInitial(user ? "Profile" : "Login");
-        }
-      })
-      .catch((error: unknown) => {
-        console.error("Session initialization failed:", error);
+    // Restore session: a stored token must still be valid on the server.
+    (async () => {
+      try {
+        if (!(await getToken())) return mounted && setInitial("Login");
+        await api.me();
+        mounted && setInitial("Profile");
+      } catch (error: unknown) {
+        // 401 -> token cleared by the client, go to Login. Offline -> keep the session and continue.
+        mounted && setInitial(error instanceof ApiError && error.status === 0 ? "Profile" : "Login");
+      }
+    })();
 
-        if (mounted) {
-          setSessionError(
-            error instanceof Error ? error.message : String(error)
-          );
-          setInitial("Login");
-        }
-      });
+    setUnauthorizedHandler(() => {
+      if (navRef.isReady()) navRef.reset({ index: 0, routes: [{ name: "Login" }] });
+    });
 
     return () => {
       mounted = false;
+      setUnauthorizedHandler(null);
     };
   }, []);
 
@@ -166,7 +169,7 @@ export default function App() {
       <StatusBar style="dark" />
 
       <ToastProvider>
-        <NavigationContainer theme={navTheme}>
+        <NavigationContainer ref={navRef} theme={navTheme}>
           <Stack.Navigator
             initialRouteName={initial}
             screenOptions={{
@@ -183,6 +186,7 @@ export default function App() {
               name="ForgotPassword"
               component={ForgotPasswordScreen}
             />
+            <Stack.Screen name="Consent" component={ConsentScreen} />
             <Stack.Screen name="Profile" component={ProfileScreen} />
             <Stack.Screen name="Skills" component={SkillsScreen} />
             <Stack.Screen

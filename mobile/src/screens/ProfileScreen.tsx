@@ -7,7 +7,9 @@ import Field from "../components/Field";
 import Button from "../components/Button";
 import { useToast } from "../components/Toast";
 import { educationLevels } from "../data";
-import { loadProfile, saveProfile } from "../store";
+import { loadProfileRemote, saveProfileRemote } from "../store";
+import { useTax } from "../taxo";
+import { ApiError } from "../api";
 import { colors, fonts } from "../theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Profile">;
@@ -18,10 +20,13 @@ export default function ProfileScreen({ navigation }: Props) {
   const [degree, setDegree] = useState("");
   const [field, setField] = useState("");
   const [college, setCollege] = useState("");
+  const edu = useTax("education_level");
+  const levels = edu.names.length ? edu.names : educationLevels;
+  const [saving, setSaving] = useState(false);
   const bar = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    loadProfile().then((p) => {
+    loadProfileRemote().then((p) => {
       if (p.education) setEducation(p.education);
       if (p.degree) setDegree(p.degree);
       if (p.field) setField(p.field);
@@ -36,8 +41,10 @@ export default function ProfileScreen({ navigation }: Props) {
 
   const next = async () => {
     if (!degree.trim() || !field.trim() || !college.trim()) return toast("Please fill in your degree, field of study and college.");
-    await saveProfile({ education, degree, field, college });
-    navigation.navigate("Skills");
+    setSaving(true);
+    try { await saveProfileRemote({ education, degree, field, college }); navigation.navigate("Skills"); }
+    catch (e) { toast(e instanceof ApiError || e instanceof Error ? e.message : "Could not save your details."); }
+    finally { setSaving(false); }
   };
 
   return (
@@ -56,7 +63,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
       <Text style={styles.label}>Education level</Text>
       <View style={styles.levels}>
-        {educationLevels.map((l) => (
+        {levels.map((l) => (
           <Pressable key={l} onPress={() => setEducation(l)} style={[styles.pill, education === l && styles.pillOn]}>
             <Text style={[styles.pillTxt, education === l && { color: "#fff" }]}>{l}</Text>
           </Pressable>
@@ -66,7 +73,7 @@ export default function ProfileScreen({ navigation }: Props) {
       <Field label="Degree / Course" placeholder="e.g. B.Tech, B.Com, BBA" value={degree} onChangeText={setDegree} />
       <Field label="Field of study" placeholder="e.g. Computer Science" value={field} onChangeText={setField} />
       <Field label="College / Institution" placeholder="Enter your college or institution" value={college} onChangeText={setCollege} />
-      <Button title="Continue" arrow onPress={next} />
+      <Button title="Continue" arrow onPress={next} loading={saving} />
     </SetupLayout>
   );
 }

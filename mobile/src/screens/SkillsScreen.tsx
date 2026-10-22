@@ -3,22 +3,24 @@ import { Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../types";
 import SetupLayout, { setupStyles as s } from "./SetupLayout";
-import Choice from "../components/Choice";
+import TaxPicker from "../components/TaxPicker";
 import Button from "../components/Button";
 import { useToast } from "../components/Toast";
-import { interests, skills } from "../data";
-import { loadProfile, saveProfile } from "../store";
+import { loadProfileRemote, saveProfileRemote } from "../store";
+import { useTax } from "../taxo";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Skills">;
-const toggle = (arr: string[], v: string) => (arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
 export default function SkillsScreen({ navigation }: Props) {
   const toast = useToast();
   const [selSkills, setSelSkills] = useState<string[]>([]);
   const [selInterests, setSelInterests] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+  const sk = useTax("skill");
+  const it = useTax("interest");
 
   useEffect(() => {
-    loadProfile().then((p) => {
+    loadProfileRemote().then((p) => {
       if (p.skills) setSelSkills(p.skills);
       if (p.interests) setSelInterests(p.interests);
     });
@@ -27,8 +29,10 @@ export default function SkillsScreen({ navigation }: Props) {
   const next = async () => {
     if (!selSkills.length) return toast("Please select at least one skill.");
     if (!selInterests.length) return toast("Please select at least one interest.");
-    await saveProfile({ skills: selSkills, interests: selInterests });
-    navigation.navigate("Preferences");
+    setSaving(true);
+    try { await saveProfileRemote({ skills: selSkills, interests: selInterests }); navigation.navigate("Preferences"); }
+    catch (e) { toast(e instanceof Error ? e.message : "Could not save your skills."); }
+    finally { setSaving(false); }
   };
 
   return (
@@ -37,26 +41,18 @@ export default function SkillsScreen({ navigation }: Props) {
         <Text style={s.h2}>Your skills</Text>
         <Text style={s.p}>Select all that apply.</Text>
         <Text style={s.count}>{selSkills.length} selected</Text>
-        <View style={s.grid}>
-          {skills.map((k) => (
-            <Choice key={k} label={k} selected={selSkills.includes(k)} onPress={() => setSelSkills(toggle(selSkills, k))} />
-          ))}
-        </View>
+        <TaxPicker options={sk.names} loading={sk.loading} selected={selSkills} onChange={setSelSkills} placeholder="Search skills (e.g. Python)" />
       </View>
 
       <View style={s.section}>
         <Text style={s.h2}>Your interests</Text>
         <Text style={s.p}>What kind of work would you enjoy exploring?</Text>
         <Text style={s.count}>{selInterests.length} selected</Text>
-        <View style={s.grid}>
-          {interests.map((k) => (
-            <Choice key={k} label={k} mark="○" selected={selInterests.includes(k)} onPress={() => setSelInterests(toggle(selInterests, k))} />
-          ))}
-        </View>
+        <TaxPicker options={it.names} loading={it.loading} selected={selInterests} onChange={setSelInterests} placeholder="Search interests" />
       </View>
 
       <View style={s.actions}>
-        <Button title="Continue" arrow onPress={next} />
+        <Button title="Continue" arrow onPress={next} loading={saving} />
         <Text style={s.back} onPress={() => navigation.navigate("Profile")}>← Back</Text>
       </View>
     </SetupLayout>

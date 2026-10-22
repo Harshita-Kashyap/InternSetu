@@ -6,22 +6,28 @@ import AuthLayout from "./AuthLayout";
 import Field from "../components/Field";
 import Button from "../components/Button";
 import { useToast } from "../components/Toast";
-import { startSession } from "../store";
+import { api, ApiError } from "../api";
 import { colors, fonts } from "../theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
 export default function LoginScreen({ navigation }: Props) {
   const toast = useToast();
-  const [username, setUsername] = useState("");
+  const [identifier, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const login = async () => {
-    if (!username.trim() || !password) return toast("Please enter your username and password.");
+    if (!identifier.trim() || !password) return toast("Please enter your email or mobile and password.");
     setLoading(true);
-    await startSession(username.trim());
-    setTimeout(() => navigation.reset({ index: 0, routes: [{ name: "Profile" }] }), 600);
+    try {
+      await api.login(identifier.trim(), password);
+      const c = await api.consent().catch(() => ({ has_active_consent: true }));
+      navigation.reset({ index: 0, routes: [{ name: c.has_active_consent ? "Profile" : "Consent" }] });
+    } catch (e) {
+      toast(e instanceof ApiError ? e.message : "Could not sign in.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -32,7 +38,7 @@ export default function LoginScreen({ navigation }: Props) {
         <Text style={styles.sub}>Your pathway to meaningful internship opportunities.</Text>
       </View>
 
-      <Field label="Username" placeholder="Enter your username" value={username} onChangeText={setUsername} autoCapitalize="none" autoComplete="username" />
+      <Field label="Email or mobile" placeholder="Enter your email or mobile number" value={identifier} onChangeText={setUsername} autoCapitalize="none" autoComplete="username" keyboardType="email-address" />
       <Field label="Password" placeholder="Enter your password" secure value={password} onChangeText={setPassword}
         rightLabel="Forgot password?" onRightPress={() => navigation.navigate("ForgotPassword")} />
       <Button title="Login" onPress={login} loading={loading} />

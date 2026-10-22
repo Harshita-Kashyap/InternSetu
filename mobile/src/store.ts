@@ -1,32 +1,61 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { api, clearToken, ProfileUpdate } from "./api";
+import { loadTax, resolveId } from "./taxo";
 
 export type Profile = {
-  education?: string;
-  degree?: string;
-  field?: string;
-  college?: string;
-  skills?: string[];
-  interests?: string[];
-  location?: string;
-  relocate?: string;
-  workMode?: string;
-  domains?: string[];
+  education?: string; degree?: string; field?: string; college?: string;
+  skills?: string[]; interests?: string[]; location?: string; relocate?: string; workMode?: string; domains?: string[];
 };
 
+// Local cache only for fields the backend has no column for (college, workMode) and as an offline fallback.
 const PROFILE_KEY = "internsetu_profile";
-const SESSION_KEY = "internsetu_session";
 
 export async function loadProfile(): Promise<Profile> {
-  try {
-    return JSON.parse((await AsyncStorage.getItem(PROFILE_KEY)) || "{}");
-  } catch {
-    return {};
-  }
+  try { return JSON.parse((await AsyncStorage.getItem(PROFILE_KEY)) || "{}"); } catch { return {}; }
 }
 export async function saveProfile(patch: Partial<Profile>) {
   const cur = await loadProfile();
   await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify({ ...cur, ...patch }));
 }
-export const startSession = (u: string) => AsyncStorage.setItem(SESSION_KEY, u);
-export const getSession = async () => (await AsyncStorage.getItem(SESSION_KEY)) || "";
-export const endSession = () => AsyncStorage.removeItem(SESSION_KEY);
+export async function endSession() {
+  await clearToken();
+  await AsyncStorage.removeItem(PROFILE_KEY);
+}
+
+type Named = { id: string; name: string }[];
+const nameOf = (items: Named, id?: string | null) => items.find((i) => i.id === id)?.name;
+const namesOf = (items: Named, ids: string[]) => ids.map((i) => nameOf(items, i)).filter(Boolean) as string[];
+const idsOf = (items: Named, names: string[]) => names.map((n) => items.find((i) => i.name === n)?.id).filter(Boolean) as string[];
+
+/** Server profile (ids) -> UI profile (names), merged with local-only fields. */
+export async function loadProfileRemote(): Promise<Profile> {
+  const local = await loadProfile();
+  try {
+    const [p, edu, deg, fos, sk, int, sec, city] = await Promise.all([
+      api.getProfile(), loadTax("education_level"), loadTax("degree"), loadTax("field_of_study"),
+      loadTax("skill"), loadTax("interest"), loadTax("sector"), loadTax("city"),
+    ]);
+    return {
+      ...local,
+      education: nameOf(edu, p.education_level_id) ?? local.education, degree: nameOf(deg, p.degree_id) ?? local.degree, field: nameOf(fos, p.field_of_study_id) ?? local.field,
+      skills: namesOf(sk, p.skill_ids), interests: namesOf(int, p.interest_ids), domains: namesOf(sec, p.preferred_sector_ids),
+      location: nameOf(city, p.home_location_id) ?? local.location,
+      relocate: p.home_location_id ? (p.willing_to_relocate ? "Yes" : "No") : local.relocate,
+    };
+  } catch { return local; }
+}
+
+/** UI profile (names) -> PATCH /me/profile (ids). Throws Error with a user-facing message. */
+export async function saveProfileRemote(patch: Partial<Profile>) {
+  const u: ProfileUpdate = {};
+  if (patch.education) { const [id] = idsOf(await loadTax("education_level"), [patch.education]); if (id) u.education_level_id = id; }
+  if (patch.degree) { const id = await resolveId("degree", patch.degree); if (!id) throw new Error(`We could not match "${patch.degree}". Try a common name like B.Tech or B.Com.`); u.degree_id = id; }
+  if (patch.field) { const id = await resolveId("field_of_study", patch.field); if (!id) throw new Error(`We could not match "${patch.field}". Try a common name like Computer Science.`); u.field_of_study_id = id; }
+  if (patch.skills) u.skill_ids = idsOf(await loadTax("skill"), patch.skills);
+  if (patch.interests) u.interest_ids = idsOf(await loadTax("interest"), patch.interests);
+  if (patch.domains) u.preferred_sector_ids = idsOf(await loadTax("sector"), patch.domains);
+  if (patch.location) { const [id] = idsOf(await loadTax("city"), [patch.location]); if (id) { u.home_location_id = id; u.preferred_location_ids = [id]; } }
+  if (patch.relocate) u.willing_to_relocate = patch.relocate === "Yes";
+  if (Object.keys(u).length) await api.updateProfile(u);
+  await saveProfile(patch);
+}
