@@ -8,6 +8,7 @@ from app.core.database import get_db
 from app.core.errors import ApiError
 from app.core.security import decode_token
 from app.models.user import ROLE_ADMIN, User
+from app.services import consent as consent_service
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -38,4 +39,14 @@ def require_admin(user: Annotated[User, Depends(get_current_user)]) -> User:
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+def require_consent(user: CurrentUser, db: DbSession) -> User:
+    """Profile data and recommendations need an active privacy consent (DPDP)."""
+    if consent_service.active_consent(db, user.id) is None:
+        raise ApiError(403, "consent_required", "Please accept the privacy notice to continue.")
+    return user
+
+
+ConsentedUser = Annotated[User, Depends(require_consent)]
 AdminUser = Annotated[User, Depends(require_admin)]

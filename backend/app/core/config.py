@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -10,6 +12,10 @@ class Settings(BaseSettings):
     consent_version: str = "1.0"
     login_max_attempts: int = 5
     login_lockout_minutes: int = 15
+    # recommendation engine
+    matching_method: Literal["baseline", "tfidf", "hybrid", "semantic"] = "baseline"  # baseline | tfidf | hybrid | semantic (hybrid/semantic need requirements-ml.txt)
+    default_k: int = 5  # 3 to 5 recommendations
+    pmis_portal_url: str = "https://pminternship.mca.gov.in/"  # "Apply" opens here; InternSetu never applies for the user
 
     model_config = SettingsConfigDict(
         env_file=".env",

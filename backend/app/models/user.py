@@ -34,3 +34,4 @@ class User(Base):
         back_populates="user", cascade="all, delete-orphan", order_by="Consent.id"
     )
     profile: Mapped["CandidateProfile | None"] = relationship(cascade="all, delete-orphan", uselist=False)
+    saved: Mapped[list["SavedInternship"]] = relationship(cascade="all, delete-orphan")

@@ -138,3 +138,11 @@ def test_forgot_and_reset_are_stubbed(client):
 def test_unknown_route_uses_error_format(client):
     r = client.get("/nope")
     assert r.status_code == 404 and r.json()["error"]["code"] == "http_404"
+
+
+def test_language_setting_is_saved(client):
+    h = auth_header(register(client).json()["access_token"])
+    r = client.patch(f"{API}/me/settings", headers=h, json={"preferred_language": "hi"})
+    assert r.status_code == 200 and r.json()["preferred_language"] == "hi"
+    assert client.get(f"{API}/auth/me", headers=h).json()["preferred_language"] == "hi"
+    assert client.patch(f"{API}/me/settings", headers=h, json={"preferred_language": "fr"}).status_code == 422

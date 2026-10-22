@@ -8,13 +8,11 @@ EntryType = Literal[
     "education_level", "degree", "field_of_study", "skill_category", "skill",
     "sector", "role_domain", "role", "interest", "state", "city",
 ]
-Lang = Literal["en", "hi", "mr"]
 
 
 class TaxonomyItem(BaseModel):
     id: str
-    name: str            # in the requested language (English if no translation yet)
-    name_en: str
+    name: str  # English. The UI translates by `id` (see docs/INTEGRATION.md)
     parent_id: str | None = None
     order_rank: int | None = None
     latitude: float | None = None
@@ -24,7 +22,6 @@ class TaxonomyItem(BaseModel):
 class NormalizeRequest(BaseModel):
     entry_type: Literal["skill", "interest", "role", "sector", "field_of_study", "degree"]
     text: str
-    lang: Lang = "en"
 
     @field_validator("text")
     @classmethod

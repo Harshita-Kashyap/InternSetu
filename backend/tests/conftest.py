@@ -16,6 +16,7 @@ from app.core.security import hash_password
 from app.main import app as fastapi_app
 from app.models import User
 from app.models.user import ROLE_ADMIN
+from app.services.recommendations import reset_engine
 
 
 @pytest.fixture()
@@ -33,6 +34,7 @@ def client():
 
     fastapi_app.dependency_overrides[get_db] = override_get_db
     login_limiter.clear()
+    reset_engine()
     with TestClient(fastapi_app) as c:
         c.db_factory = Session
         yield c

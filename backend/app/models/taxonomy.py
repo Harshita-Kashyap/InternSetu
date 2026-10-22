@@ -25,18 +25,7 @@ class TaxonomyEntry(Base):
     longitude: Mapped[float | None] = mapped_column(nullable=True)
     is_active: Mapped[bool] = mapped_column(default=True, server_default=sa.true(), nullable=False)
 
-    translations: Mapped[list["TaxonomyTranslation"]] = relationship(cascade="all, delete-orphan")
     synonyms: Mapped[list["TaxonomySynonym"]] = relationship(cascade="all, delete-orphan")
-
-
-class TaxonomyTranslation(Base):
-    __tablename__ = "taxonomy_translations"
-    __table_args__ = (UniqueConstraint("entry_id", "lang", name="uq_translation_entry_lang"),)
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    entry_id: Mapped[str] = mapped_column(ForeignKey("taxonomy_entries.id", ondelete="CASCADE"), index=True)
-    lang: Mapped[str] = mapped_column(String(5), nullable=False)
-    label: Mapped[str] = mapped_column(String(200), nullable=False)
 
 
 class TaxonomySynonym(Base):

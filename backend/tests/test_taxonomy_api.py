@@ -1,6 +1,6 @@
 from sqlalchemy import select
 
-from app.models import FlaggedValue, TaxonomyEntry, TaxonomyTranslation
+from app.models import FlaggedValue
 from tests.conftest import API, auth_header, register
 
 
@@ -25,20 +25,8 @@ def test_filter_by_parent(loaded_client):
     assert {"Indore", "Bhopal"} <= {x["name"] for x in items}
 
 
-def test_language_with_fallback(loaded_client):
-    with loaded_client.db_factory() as db:
-        db.add(TaxonomyTranslation(entry_id="SK-PROG-001", lang="hi", label="पायथन"))
-        db.commit()
-    hi = {x["id"]: x["name"] for x in loaded_client.get(f"{API}/taxonomy/skill?lang=hi&limit=500").json()}
-    assert hi["SK-PROG-001"] == "पायथन"
-    assert hi["SK-PROG-002"] == next(x["name"] for x in loaded_client.get(f"{API}/taxonomy/skill?limit=500").json() if x["id"] == "SK-PROG-002")
-    # translated label is searchable too
-    assert any(x["id"] == "SK-PROG-001" for x in loaded_client.get(f"{API}/taxonomy/skill?lang=hi&q=पायथन").json())
-
-
-def test_invalid_type_and_lang_rejected(loaded_client):
+def test_invalid_type_rejected(loaded_client):
     assert loaded_client.get(f"{API}/taxonomy/banana").status_code == 422
-    assert loaded_client.get(f"{API}/taxonomy/skill?lang=fr").status_code == 422
 
 
 def test_city_has_coordinates(loaded_client):

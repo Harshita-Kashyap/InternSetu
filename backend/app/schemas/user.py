@@ -1,6 +1,12 @@
 from datetime import datetime
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict
+
+
+class SettingsUpdate(BaseModel):
+    preferred_language: Literal["en", "hi", "mr"]  # only used by the apps to pick the UI language
 
 
 class UserResponse(BaseModel):

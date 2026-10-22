@@ -7,22 +7,14 @@ from app.services.normalizer import Match, TaxonomyIndex
 
 
 def _labels(e: TaxonomyEntry) -> list[str]:
-    return [e.name] + [t.label for t in e.translations] + [s.synonym for s in e.synonyms]
+    return [e.name] + [s.synonym for s in e.synonyms]
 
 
-def label_for(e: TaxonomyEntry, lang: str) -> str:
-    if lang != "en":
-        for t in e.translations:
-            if t.lang == lang:
-                return t.label
-    return e.name  # fall back to English (REQ-4.10.4)
-
-
-def list_entries(db: Session, entry_type: str, lang: str, q: str | None, parent: str | None, limit: int):
+def list_entries(db: Session, entry_type: str, q: str | None, parent: str | None, limit: int):
     stmt = (
         select(TaxonomyEntry)
         .where(TaxonomyEntry.type == entry_type, TaxonomyEntry.is_active.is_(True))
-        .options(selectinload(TaxonomyEntry.translations), selectinload(TaxonomyEntry.synonyms))
+        .options(selectinload(TaxonomyEntry.synonyms))
         .order_by(TaxonomyEntry.order_rank, TaxonomyEntry.name)
     )
     if parent:
@@ -46,7 +38,7 @@ def build_index(db: Session) -> TaxonomyIndex:
     stmt = (
         select(TaxonomyEntry)
         .where(TaxonomyEntry.is_active.is_(True))
-        .options(selectinload(TaxonomyEntry.translations), selectinload(TaxonomyEntry.synonyms))
+        .options(selectinload(TaxonomyEntry.synonyms))
     )
     for e in db.scalars(stmt):
         idx.add(e.id, e.type, _labels(e))

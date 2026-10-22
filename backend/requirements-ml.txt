@@ -1,0 +1,5 @@
+# OPTIONAL: only for matching_method = hybrid or semantic (downloads a ~90 MB model on first use, needs ~1 GB disk)
+-r requirements.txt
+torch
+transformers
+sentence-transformers

@@ -1,6 +1,6 @@
 """Maps free text to taxonomy entries (REQ-4.3.3, 4.3.4, 4.2.4). Pure Python, no database.
 
-exact   -> same name / alias / synonym / translation (ignoring case, spaces, punctuation)
+exact   -> same name / alias / synonym (ignoring case, spaces, punctuation)
 fuzzy   -> very close spelling (ratio >= 0.90), accepted automatically
 suggest -> close but not sure (ratio >= 0.75): NOT accepted, flagged for admin with a suggestion
 none    -> nothing close: flagged for admin

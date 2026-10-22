@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.core.text import normalize_text
 from app.models import (
     CandidateLink, CandidateProfile, Internship, InternshipSkill,
-    TaxonomyEntry, TaxonomySynonym, TaxonomyTranslation,
+    TaxonomyEntry, TaxonomySynonym,
 )
 from app.models.internship import MANDATORY, PREFERRED
 from app.services import dataset_parse as parse
@@ -23,7 +23,7 @@ def load_taxonomy(db: Session, path) -> dict:
     parsed = parse.parse_taxonomy(_read_json(path))
     for e in parsed["entries"]:
         existing = db.get(TaxonomyEntry, e["id"])
-        if existing:  # keep coordinates / translations already loaded
+        if existing:  # keep coordinates already loaded
             for k in ("type", "name", "parent_id", "order_rank"):
                 setattr(existing, k, e[k])
         else:
@@ -87,25 +87,3 @@ def load_coordinates_csv(db: Session, path) -> int:
     db.commit()
     return n
 
-
-def load_translations_csv(db: Session, path) -> dict:
-    """CSV columns: id, <any text columns>, hi, mr. Blank cells are skipped."""
-    added, unknown = 0, []
-    with open(path, encoding="utf-8-sig", newline="") as f:
-        for row in csv.DictReader(f):
-            if db.get(TaxonomyEntry, row["id"]) is None:
-                unknown.append(row["id"])
-                continue
-            for lang in ("hi", "mr"):
-                label = (row.get(lang) or "").strip()
-                if not label:
-                    continue
-                t = db.scalar(select(TaxonomyTranslation).where(
-                    TaxonomyTranslation.entry_id == row["id"], TaxonomyTranslation.lang == lang))
-                if t:
-                    t.label = label
-                else:
-                    db.add(TaxonomyTranslation(entry_id=row["id"], lang=lang, label=label))
-                added += 1
-    db.commit()
-    return {"translations": added, "unknown_ids": unknown}

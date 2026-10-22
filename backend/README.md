@@ -2,6 +2,9 @@
 
 Batch 1: foundation, authentication, consent/privacy, admin seeding.
 Batch 2: taxonomy, internship and profile tables, dataset loader, taxonomy API, text-to-taxonomy matching.
+Batch 3: profile API, recommendation engine (teammate's code in `app/engine`), saved internships, API client for web and mobile.
+
+**Start here: `docs/INTEGRATION.md`** (how to test the backend and connect the web and mobile apps).
 Python 3.12 recommended. Run all commands from this `backend/` folder.
 
 ## First-time setup (Windows PowerShell; on Linux/macOS use `source .venv/bin/activate`)
@@ -48,19 +51,26 @@ Send the token as `Authorization: Bearer <token>`.
 (`fields` only appears for validation errors, so the UI can show each message next to its input).
 
 ## Datasets (`data/`)
-- `internsetu_taxonomy.json`, `internsetu_synthetic_internships_v1.json`, `internsetu_synthetic_candidates_v1.json` — your files, unchanged.
-- `locations_coordinates.csv` — approximate latitude/longitude of the 70 cities (needed for the distance score). Please spot-check.
-- `translations_template.csv` — 623 rows (id, type, name_en, **hi**, **mr** blank). Fill `hi` and `mr`, save as `data/translations.csv`, then run the load command again.
-  Anything left blank falls back to English.
+- `internsetu_taxonomy.json`, `internsetu_synthetic_internships_v1.json`, `internsetu_synthetic_candidates_v1.json` - your files, unchanged.
+- `locations_coordinates.csv` - approximate latitude/longitude of the 70 cities (please spot-check).
+- `ui_taxonomy_en.json` - id -> English name for the apps' translation files (`python -m app.scripts.export_ui_taxonomy`).
 
-## Taxonomy endpoints (added)
-| Method & path | Auth | Purpose |
-|---|---|---|
-| GET `/taxonomy/{type}?lang=hi&q=pyth&parent=LOC-STATE-MP&limit=100` | – | Options for dropdowns/chips/search. Types: `education_level degree field_of_study skill_category skill sector role_domain role interest state city`. |
-| POST `/taxonomy/normalize` | Bearer | Body `{entry_type, text}` for "other skill" boxes. Returns the matched entry, or flags the text for admin review (with a suggestion if one is close). |
-| GET `/taxonomy/types` | – | List of types. |
+## Endpoints (all under `/api/v1`; see http://localhost:8000/docs for the full list with examples)
+| Area | Endpoints |
+|---|---|
+| Auth | `POST /auth/register`, `/auth/login`, `GET /auth/me`, `POST /auth/change-password`, forgot/reset (stubs) |
+| Account | `GET/POST/DELETE /me/consent`, `GET /me/export`, `DELETE /me`, `PATCH /me/settings` (UI language) |
+| Taxonomy | `GET /taxonomy/{type}?q=&parent=&limit=`, `GET /taxonomy/durations`, `POST /taxonomy/normalize` |
+| Profile | `GET/PATCH /me/profile`, `POST /me/profile/confirm` |
+| Recommendations | `GET /me/recommendations?k=&method=`, `GET /me/recommendations/{internship_id}`, `GET /me/skill-gap` |
+| Saved | `GET /me/saved`, `PUT/DELETE /me/saved/{internship_id}` |
+| Admin | `GET /admin/ping` (more in the next batch) |
+| System | `GET /health` |
+
+Settings in `.env`: `MATCHING_METHOD` (`baseline` default, `tfidf`, `hybrid`, `semantic`), `DEFAULT_K` (3 to 5), `PMIS_PORTAL_URL`.
 
 ## Notes
+- The backend is English-only; the apps translate the UI (see `docs/INTEGRATION.md`, section 3).
 - Mobile numbers are stored as 10 digits (`+91`/`0` prefixes are accepted and removed).
 - The old public `POST /users` route was removed: it created accounts with no password.
 - Login lockout is in-memory (fine for one server process).
