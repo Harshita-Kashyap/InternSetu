@@ -6,10 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AuthShell from "./components/AuthShell";
 import { useToast } from "./components/Toast";
-import {
-  startSession,
-  hasPrivacyConsent,
-} from "./lib/store";
+import { api, ApiError } from "./lib/api";
 import { useTranslations } from "next-intl";
 
 export default function Home() {
@@ -21,21 +18,18 @@ export default function Home() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = (event: React.FormEvent) => {
+  const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!username.trim() || !password) {
-      show(t("passwordRequired"));
-      return;
-    }
+    if (!username.trim() || !password) return show(t("passwordRequired"));
     setLoading(true);
-    startSession(username.trim());
-    setTimeout(() => {
-  if (hasPrivacyConsent()) {
-    router.push("/profile");
-  } else {
-    router.push("/consent");
-  }
-}, 700);
+    try {
+      await api.login(username.trim(), password);
+      const c = await api.consent();
+      router.push(c.has_active_consent ? "/profile" : "/consent");
+    } catch (err) {
+      show(err instanceof ApiError ? err.message : "Login failed. Please try again.");
+      setLoading(false);
+    }
   };
 
   return (

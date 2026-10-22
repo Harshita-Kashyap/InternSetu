@@ -1,7 +1,16 @@
-# InternSetu
+# InternSetu Web
 
-    npm install
-    npm run dev      # http://localhost:3000
+## Run locally
+1. Install Node.js (LTS).
+2. From this directory, run `npm install`.
+3. Set `NEXT_PUBLIC_API_URL` in `.env.local` to your backend base URL (for example, `http://localhost:8000`).
+4. Run `npm run dev` and open `http://localhost:3000`.
 
-Flow: Splash -> Login / Register / Forgot password -> Profile (1/3) -> Skills (2/3) -> Preferences (3/3) -> Recommendations.
-Profile answers are kept in the browser (localStorage) and used to rank internships. Login is a demo (no backend yet).
+## Structure
+- `app/[locale]/` contains the active localized routes (`en`, `hi`).
+- `app/components/` contains shared UI components.
+- `app/lib/` re-exports the shared API, profile store, and taxonomy helpers.
+- `api.ts`, `store.ts`, and `taxo.ts` contain the API client and integration logic.
+- `i18n/` and `messages/` configure English/Hindi localization.
+
+The frontend expects the backend API at `${NEXT_PUBLIC_API_URL}/api/v1`.

@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../components/Header";
-import { loadProfile, type Profile } from "../lib/store";
+import { loadProfileRemote, type Profile } from "../lib/store";
+import { api, ApiError } from "../lib/api";
 import { useToast } from "../components/Toast";
 
 export default function ProfileSummaryPage() {
@@ -13,8 +14,7 @@ export default function ProfileSummaryPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setProfile(loadProfile());
-    setReady(true);
+    loadProfileRemote().then((p) => { setProfile(p); setReady(true); });
   }, []);
 
   if (!ready) {
@@ -38,13 +38,17 @@ export default function ProfileSummaryPage() {
 
   const editSection = (path: string) => router.push(path);
 
-  const getRecommendations = () => {
+  const getRecommendations = async () => {
     if (missingItems.length > 0) {
       show("Please complete your missing profile details before continuing.");
       return;
     }
-
-    router.push("/recommendations");
+    try {
+      await api.confirmProfile();
+      router.push("/recommendations");
+    } catch (e) {
+      show(e instanceof ApiError ? e.message : "Could not confirm your profile.");
+    }
   };
 
   const value = (item?: string) => item?.trim() || "Not provided";

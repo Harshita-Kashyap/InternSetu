@@ -5,18 +5,8 @@ import { useRouter } from "next/navigation";
 import Header from "../../components/Header";
 import Stepper from "../../components/Stepper";
 import { useToast } from "../../components/Toast";
-import { loadProfile, saveProfile } from "../../lib/store";
-
-const locations = [
-  "Any location",
-  "Delhi NCR",
-  "Mumbai",
-  "Bengaluru",
-  "Hyderabad",
-  "Pune",
-  "Chennai",
-  "Kolkata",
-];
+import { loadProfileRemote, saveProfileRemote } from "../../lib/store";
+import { useTax } from "../../lib/taxo";
 
 const workModes = [
   "On-site",
@@ -24,32 +14,23 @@ const workModes = [
   "Remote",
 ];
 
-const domains = [
-  "Technology",
-  "Finance",
-  "Marketing",
-  "Business",
-  "Healthcare",
-  "Education",
-  "Design",
-  "Social Impact",
-];
-
 export default function PreferencesPage() {
   const router = useRouter();
+  const locations = useTax("city").names;
+  const domains = useTax("sector").names;
   const { toast, show } = useToast();
-  const [location, setLocation] = useState("Any location");
+  const [location, setLocation] = useState("");
   const [relocate, setRelocate] = useState("");
   const [workMode, setWorkMode] = useState("");
   const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
 
   useEffect(() => {
-    const pr = loadProfile();
-    if (pr.location) setLocation(pr.location);
-    if (pr.relocate) setRelocate(pr.relocate);
-    if (pr.workMode) setWorkMode(pr.workMode);
-    if (pr.domains) setSelectedDomains(pr.domains);
-    else if (pr.interests) setSelectedDomains(pr.interests.filter((i) => domains.includes(i)));
+    loadProfileRemote().then((pr) => {
+      if (pr.location) setLocation(pr.location);
+      if (pr.relocate) setRelocate(pr.relocate);
+      if (pr.workMode) setWorkMode(pr.workMode);
+      if (pr.domains) setSelectedDomains(pr.domains);
+    });
   }, []);
 
   const toggleDomain = (domain: string) => {
@@ -60,12 +41,17 @@ export default function PreferencesPage() {
     );
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    if (!location) return show("Please select your preferred city.");
     if (!relocate) return show("Please tell us whether you are willing to relocate.");
     if (!workMode) return show("Please select your preferred work mode.");
     if (selectedDomains.length === 0) return show("Please select at least one preferred domain.");
-    saveProfile({ location, relocate, workMode, domains: selectedDomains });
-    router.push("/profile-summary");
+    try {
+      await saveProfileRemote({ location, relocate, workMode, domains: selectedDomains });
+      router.push("/profile-summary");
+    } catch (e) {
+      show(e instanceof Error ? e.message : "Could not save. Please try again.");
+    }
   };
 
   return (
@@ -96,6 +82,7 @@ export default function PreferencesPage() {
                 value={location}
                 onChange={(event) => setLocation(event.target.value)}
               >
+                <option value="" disabled>Select a city</option>
                 {locations.map((item) => (
                   <option key={item} value={item}>
                     {item}
@@ -104,8 +91,7 @@ export default function PreferencesPage() {
               </select>
 
               <p className="field-hint">
-                Choose &quot;Any location&quot; if you are open to opportunities
-                anywhere in India.
+                Choose the city where you would like to work.
               </p>
             </div>
 

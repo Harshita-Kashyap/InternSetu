@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AuthShell from "../components/AuthShell";
 import { useToast } from "../components/Toast";
-import { acceptPrivacyConsent } from "../lib/store";
+import { api, ApiError } from "../lib/api";
 
 export default function ConsentPage() {
   const router = useRouter();
@@ -14,17 +14,15 @@ export default function ConsentPage() {
   const [checked, setChecked] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const continueToProfile = () => {
+  const continueToProfile = async () => {
     if (!checked || loading) return;
-
     setLoading(true);
-
     try {
-      acceptPrivacyConsent();
+      await api.giveConsent();
       router.push("/profile");
-    } catch {
+    } catch (err) {
       setLoading(false);
-      show("Unable to save your consent. Please try again.");
+      show(err instanceof ApiError ? err.message : "Unable to save your consent. Please try again.");
     }
   };
 

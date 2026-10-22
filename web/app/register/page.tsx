@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AuthShell from "../components/AuthShell";
 import { useToast } from "../components/Toast";
-import { startSession } from "../lib/store";
+import { api, ApiError } from "../lib/api";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [agree, setAgree] = useState(false);
 
   const strength = Math.min(
     4,
@@ -24,14 +25,21 @@ export default function RegisterPage() {
   );
   const labels = ["Too short", "Weak", "Fair", "Good", "Strong"];
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return show("Please enter your full name.");
     if (!/^\S+@\S+\.\S+$/.test(email)) return show("Please enter a valid email.");
-    if (password.length < 6) return show("Password must be at least 6 characters.");
+    if (password.length < 8) return show("Password must be at least 8 characters.");
+    if (!agree) return show("Please accept the privacy notice to continue.");
     setLoading(true);
-    startSession(name.trim());
-    setTimeout(() => router.push("/consent"), 700);
+    try {
+      await api.register({ full_name: name.trim(), email: email.trim(), password, consent: true });
+      router.push("/profile");
+    } catch (err) {
+      if (err instanceof ApiError) show(err.fieldMessage("password") || err.fieldMessage("email") || err.fieldMessage("full_name") || err.message);
+      else show("Could not create your account. Please try again.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -66,6 +74,10 @@ export default function RegisterPage() {
               <small>{password ? labels[strength] : "Use 8+ characters, a number & a symbol"}</small>
             </div>
           </div>
+          <label style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" }}>
+            <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} style={{ marginTop: 5 }} />
+            <span>I have read the <Link href="/privacy" className="register-button">Privacy Policy</Link> and consent to my information being used to find internships.</span>
+          </label>
           <button type="submit" className="login-button" disabled={loading}>
             {loading ? <span className="spinner" /> : "Create account"}
           </button>

@@ -5,44 +5,22 @@ import { useRouter } from "next/navigation";
 import Header from "../../components/Header";
 import Stepper from "../../components/Stepper";
 import { useToast } from "../../components/Toast";
-import { loadProfile, saveProfile } from "../../lib/store";
-
-const skills = [
-  "Python",
-  "JavaScript",
-  "Java",
-  "C++",
-  "HTML/CSS",
-  "SQL",
-  "Excel",
-  "Data Analysis",
-  "Communication",
-  "Problem Solving",
-  "Digital Marketing",
-  "Graphic Design",
-];
-
-const interests = [
-  "Technology",
-  "Finance",
-  "Marketing",
-  "Business",
-  "Healthcare",
-  "Education",
-  "Design",
-  "Social Impact",
-];
+import { loadProfileRemote, saveProfileRemote } from "../../lib/store";
+import { useTax } from "../../lib/taxo";
 
 export default function SkillsPage() {
   const router = useRouter();
+  const skills = useTax("skill").names;
+  const interests = useTax("interest").names;
   const { toast, show } = useToast();
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
 
   useEffect(() => {
-    const p = loadProfile();
-    if (p.skills) setSelectedSkills(p.skills);
-    if (p.interests) setSelectedInterests(p.interests);
+    loadProfileRemote().then((p) => {
+      if (p.skills) setSelectedSkills(p.skills);
+      if (p.interests) setSelectedInterests(p.interests);
+    });
   }, []);
 
   const toggleSkill = (skill: string) => {
@@ -155,11 +133,15 @@ export default function SkillsPage() {
             <button
               type="button"
               className="profile-continue"
-              onClick={() => {
+              onClick={async () => {
                 if (selectedSkills.length === 0) return show("Please select at least one skill.");
                 if (selectedInterests.length === 0) return show("Please select at least one interest.");
-                saveProfile({ skills: selectedSkills, interests: selectedInterests });
-                router.push("/profile/preferences");
+                try {
+                  await saveProfileRemote({ skills: selectedSkills, interests: selectedInterests });
+                  router.push("/profile/preferences");
+                } catch (e) {
+                  show(e instanceof Error ? e.message : "Could not save. Please try again.");
+                }
               }}
             >
               Continue
