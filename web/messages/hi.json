@@ -1,0 +1,35 @@
+
+{
+  "Login": {
+    "welcome": "वापसी पर आपका स्वागत है",
+    "heading": "InternSetu में लॉग इन करें",
+    "subtitle": "इंटर्नशिप के सार्थक अवसरों की ओर आपका मार्ग।",
+    "username": "उपयोगकर्ता नाम",
+    "usernamePlaceholder": "अपना उपयोगकर्ता नाम दर्ज करें",
+    "password": "पासवर्ड",
+    "passwordPlaceholder": "अपना पासवर्ड दर्ज करें",
+    "login": "लॉग इन",
+    "register": "रजिस्टर करें",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "noAccount": "क्या आपका खाता नहीं है?",
+    "secureFooter": "InternSetu तक सुरक्षित और आसान पहुँच",
+    "showPassword": "दिखाएँ",
+    "hidePassword": "छिपाएँ",
+    "passwordRequired": "कृपया अपना उपयोगकर्ता नाम और पासवर्ड दर्ज करें।"
+  },
+  "Profile": {
+    "eyebrow": "चलिए शुरू करते हैं",
+    "heading": "आइए आपके लिए सही इंटर्नशिप खोजें",
+    "description": "अपनी शिक्षा, कौशल और पसंद के बारे में बताएँ, ताकि हम आपके लिए उपयुक्त इंटर्नशिप के सुझाव दे सकें।",
+    "completion": "विवरण भरे गए",
+    "educationLevel": "शिक्षा का स्तर",
+    "degree": "डिग्री / कोर्स",
+    "degreePlaceholder": "जैसे B.Tech, B.Com, BBA",
+    "field": "अध्ययन का क्षेत्र",
+    "fieldPlaceholder": "जैसे कंप्यूटर साइंस",
+    "college": "कॉलेज / संस्थान",
+    "collegePlaceholder": "अपने कॉलेज या संस्थान का नाम दर्ज करें",
+    "continue": "आगे बढ़ें",
+    "validation": "कृपया अपनी डिग्री, अध्ययन का क्षेत्र और कॉलेज भरें।"
+  }
+}

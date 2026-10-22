@@ -1,6 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Header from "../../components/Header";
+import Stepper from "../../components/Stepper";
+import { useToast } from "../../components/Toast";
+import { loadProfile, saveProfile } from "../../lib/store";
 
 const locations = [
   "Any location",
@@ -31,10 +36,21 @@ const domains = [
 ];
 
 export default function PreferencesPage() {
+  const router = useRouter();
+  const { toast, show } = useToast();
   const [location, setLocation] = useState("Any location");
   const [relocate, setRelocate] = useState("");
   const [workMode, setWorkMode] = useState("");
   const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
+
+  useEffect(() => {
+    const pr = loadProfile();
+    if (pr.location) setLocation(pr.location);
+    if (pr.relocate) setRelocate(pr.relocate);
+    if (pr.workMode) setWorkMode(pr.workMode);
+    if (pr.domains) setSelectedDomains(pr.domains);
+    else if (pr.interests) setSelectedDomains(pr.interests.filter((i) => domains.includes(i)));
+  }, []);
 
   const toggleDomain = (domain: string) => {
     setSelectedDomains((current) =>
@@ -45,48 +61,19 @@ export default function PreferencesPage() {
   };
 
   const handleContinue = () => {
-    if (!relocate) {
-      alert("Please tell us whether you are willing to relocate.");
-      return;
-    }
-
-    if (!workMode) {
-      alert("Please select your preferred work mode.");
-      return;
-    }
-
-    if (selectedDomains.length === 0) {
-      alert("Please select at least one preferred domain.");
-      return;
-    }
-
-    window.location.href = "/recommendations";
+    if (!relocate) return show("Please tell us whether you are willing to relocate.");
+    if (!workMode) return show("Please select your preferred work mode.");
+    if (selectedDomains.length === 0) return show("Please select at least one preferred domain.");
+    saveProfile({ location, relocate, workMode, domains: selectedDomains });
+    router.push("/profile-summary");
   };
 
   return (
     <main className="profile-page">
-      <header className="profile-header">
-        <div className="profile-brand">
-          <span>InternSetu</span>
-        </div>
-
-        <div className="profile-header-right">
-          <span>Profile Setup</span>
-
-          <button
-            type="button"
-            className="logout-button"
-            onClick={() => {
-              window.location.href = "/";
-            }}
-          >
-            Logout
-          </button>
-        </div>
-      </header>
+      <Header />
 
       <section className="profile-container">
-        <div className="profile-card preferences-card">
+        <div className="profile-card preferences-card card-rise">
           <div className="profile-intro">
             <p className="profile-eyebrow">STEP 3 OF 3</p>
 
@@ -98,26 +85,7 @@ export default function PreferencesPage() {
             </p>
           </div>
 
-          <div className="progress-section">
-            <div className="progress-step completed">
-              <div className="step-circle">✓</div>
-              <span>Education</span>
-            </div>
-
-            <div className="progress-line active"></div>
-
-            <div className="progress-step completed">
-              <div className="step-circle">✓</div>
-              <span>Skills &amp; Interests</span>
-            </div>
-
-            <div className="progress-line active"></div>
-
-            <div className="progress-step active">
-              <div className="step-circle">3</div>
-              <span>Preferences</span>
-            </div>
-          </div>
+          <Stepper current={3} />
 
           <div className="preferences-form">
             <div className="profile-field">
@@ -237,9 +205,7 @@ export default function PreferencesPage() {
             <button
               type="button"
               className="back-button"
-              onClick={() => {
-                window.location.href = "/profile/skills";
-              }}
+              onClick={() => router.push("/profile/skills")}
             >
               ← Back
             </button>
@@ -255,6 +221,7 @@ export default function PreferencesPage() {
           </div>
         </div>
       </section>
+      {toast}
     </main>
   );
 }

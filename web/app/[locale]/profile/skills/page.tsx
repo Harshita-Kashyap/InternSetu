@@ -1,0 +1,1 @@
+export { default } from "../../../profile/skills/page";
