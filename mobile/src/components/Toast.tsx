@@ -1,13 +1,15 @@
-import React, { createContext, useCallback, useContext, useRef, useState } from "react";
+import React, { useMemo, createContext, useCallback, useContext, useRef, useState } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors, fonts } from "../theme";
+import { useTheme, Colors, fonts } from "../theme";
 
 type Kind = "error" | "success";
 const Ctx = createContext<(msg: string, kind?: Kind) => void>(() => {});
 export const useToast = () => useContext(Ctx);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const [msg, setMsg] = useState("");
   const [kind, setKind] = useState<Kind>("error");
@@ -40,7 +42,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Colors) => StyleSheet.create({
   toast: { position: "absolute", left: 20, right: 20, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: colors.text, padding: 14, borderRadius: 12, elevation: 10, shadowColor: "#000", shadowOpacity: 0.25, shadowRadius: 16, shadowOffset: { width: 0, height: 8 } },
   icon: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center" },
   iconTxt: { color: "#fff", fontSize: 12, fontFamily: fonts.bold },

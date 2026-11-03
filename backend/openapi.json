@@ -1,0 +1,2531 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "InternSetu API",
+        "description": "AI-assisted internship recommendation engine for PM Internship Scheme",
+        "version": "0.2.0"
+    },
+    "paths": {
+        "/health": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Health Check",
+                "operationId": "health_check_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Register",
+                "operationId": "register_api_v1_auth_register_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegisterRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TokenResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login",
+                "operationId": "login_api_v1_auth_login_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TokenResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/me": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Me",
+                "operationId": "me_api_v1_auth_me_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/auth/change-password": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Change Password",
+                "operationId": "change_password_api_v1_auth_change_password_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ChangePasswordRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/auth/forgot-password": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Forgot Password",
+                "operationId": "forgot_password_api_v1_auth_forgot_password_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ForgotPasswordRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "202": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/reset-password": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Reset Password",
+                "operationId": "reset_password_api_v1_auth_reset_password_post",
+                "responses": {
+                    "501": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/me/settings": {
+            "patch": {
+                "tags": [
+                    "Me"
+                ],
+                "summary": "Update Settings",
+                "description": "Remember the user's UI language so web and mobile show the same one.",
+                "operationId": "update_settings_api_v1_me_settings_patch",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SettingsUpdate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/me/consent": {
+            "get": {
+                "tags": [
+                    "Me"
+                ],
+                "summary": "Get Consent",
+                "operationId": "get_consent_api_v1_me_consent_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConsentStatusResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Me"
+                ],
+                "summary": "Give Consent",
+                "operationId": "give_consent_api_v1_me_consent_post",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConsentStatusResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Me"
+                ],
+                "summary": "Withdraw Consent",
+                "operationId": "withdraw_consent_api_v1_me_consent_delete",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConsentStatusResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/me/export": {
+            "get": {
+                "tags": [
+                    "Me"
+                ],
+                "summary": "Export My Data",
+                "description": "All data held about the user (DPDP right to access). Recommendations are calculated on demand, not stored.",
+                "operationId": "export_my_data_api_v1_me_export_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/me": {
+            "delete": {
+                "tags": [
+                    "Me"
+                ],
+                "summary": "Delete My Account",
+                "operationId": "delete_my_account_api_v1_me_delete",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteAccountRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/taxonomy/types": {
+            "get": {
+                "tags": [
+                    "Taxonomy"
+                ],
+                "summary": "List Types",
+                "operationId": "list_types_api_v1_taxonomy_types_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/taxonomy/durations": {
+            "get": {
+                "tags": [
+                    "Taxonomy"
+                ],
+                "summary": "List Durations",
+                "description": "Allowed values for the 'preferred duration' dropdown (profile field duration_preference).",
+                "operationId": "list_durations_api_v1_taxonomy_durations_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/taxonomy/{entry_type}": {
+            "get": {
+                "tags": [
+                    "Taxonomy"
+                ],
+                "summary": "List Taxonomy",
+                "description": "Public. Options for dropdowns / chips / search-as-you-type (English names + stable ids).",
+                "operationId": "list_taxonomy_api_v1_taxonomy__entry_type__get",
+                "parameters": [
+                    {
+                        "name": "entry_type",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "enum": [
+                                "education_level",
+                                "degree",
+                                "field_of_study",
+                                "skill_category",
+                                "skill",
+                                "sector",
+                                "role_domain",
+                                "role",
+                                "interest",
+                                "state",
+                                "city"
+                            ],
+                            "type": "string",
+                            "title": "Entry Type"
+                        }
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string",
+                                    "maxLength": 100
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Q"
+                        }
+                    },
+                    {
+                        "name": "parent",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string",
+                                    "maxLength": 40
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Parent"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 500,
+                            "minimum": 1,
+                            "default": 100,
+                            "title": "Limit"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/TaxonomyItem"
+                                    },
+                                    "title": "Response List Taxonomy Api V1 Taxonomy  Entry Type  Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/taxonomy/normalize": {
+            "post": {
+                "tags": [
+                    "Taxonomy"
+                ],
+                "summary": "Normalize",
+                "description": "For 'other skill' style free text: map to the taxonomy, or flag for admin review.",
+                "operationId": "normalize_api_v1_taxonomy_normalize_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/NormalizeRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NormalizeResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/me/profile": {
+            "get": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Get Profile",
+                "description": "Your profile (an empty draft is created the first time). `missing_fields` says what is still needed.",
+                "operationId": "get_profile_api_v1_me_profile_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProfileResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Update Profile",
+                "description": "Save one step at a time: send only the fields of that step.",
+                "operationId": "update_profile_api_v1_me_profile_patch",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProfileUpdate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProfileResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/me/profile/confirm": {
+            "post": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Confirm Profile",
+                "description": "The 'Get my recommendations' button on the summary screen.",
+                "operationId": "confirm_profile_api_v1_me_profile_confirm_post",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProfileResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/me/recommendations": {
+            "get": {
+                "tags": [
+                    "Recommendations"
+                ],
+                "summary": "Get Recommendations",
+                "description": "Top 3 to 5 internships. If nothing is eligible, `recommendations` is empty and `nearest` explains what is missing.",
+                "operationId": "get_recommendations_api_v1_me_recommendations_get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "k",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "integer",
+                                    "maximum": 5,
+                                    "minimum": 3
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "How many (3 to 5)",
+                            "title": "K"
+                        },
+                        "description": "How many (3 to 5)"
+                    },
+                    {
+                        "name": "method",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "enum": [
+                                        "baseline",
+                                        "tfidf",
+                                        "hybrid",
+                                        "semantic"
+                                    ],
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Method"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RecommendationsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/me/recommendations/{internship_id}": {
+            "get": {
+                "tags": [
+                    "Recommendations"
+                ],
+                "summary": "Get Internship Detail",
+                "description": "Full details of one internship, and how it fits you (works for eligible and non-eligible ones).",
+                "operationId": "get_internship_detail_api_v1_me_recommendations__internship_id__get",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "internship_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Internship Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternshipDetail"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/me/skill-gap": {
+            "get": {
+                "tags": [
+                    "Recommendations"
+                ],
+                "summary": "Get Skill Gap",
+                "description": "Skills that would help most across your recommendations.",
+                "operationId": "get_skill_gap_api_v1_me_skill_gap_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/me/saved": {
+            "get": {
+                "tags": [
+                    "Recommendations"
+                ],
+                "summary": "List Saved",
+                "operationId": "list_saved_api_v1_me_saved_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/SavedItem"
+                                    },
+                                    "type": "array",
+                                    "title": "Response List Saved Api V1 Me Saved Get"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/me/saved/{internship_id}": {
+            "put": {
+                "tags": [
+                    "Recommendations"
+                ],
+                "summary": "Save Internship",
+                "operationId": "save_internship_api_v1_me_saved__internship_id__put",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "internship_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Internship Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Recommendations"
+                ],
+                "summary": "Unsave Internship",
+                "operationId": "unsave_internship_api_v1_me_saved__internship_id__delete",
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "internship_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "Internship Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/ping": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Admin Ping",
+                "description": "Lets the web app confirm the logged-in user really is an admin.",
+                "operationId": "admin_ping_api_v1_admin_ping_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "HTTPBearer": []
+                    }
+                ]
+            }
+        },
+        "/": {
+            "get": {
+                "summary": "Root",
+                "operationId": "root__get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ChangePasswordRequest": {
+                "properties": {
+                    "current_password": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "minLength": 1,
+                        "title": "Current Password"
+                    },
+                    "new_password": {
+                        "type": "string",
+                        "title": "New Password"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "current_password",
+                    "new_password"
+                ],
+                "title": "ChangePasswordRequest"
+            },
+            "ConsentRecord": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "title": "Id"
+                    },
+                    "purpose": {
+                        "type": "string",
+                        "title": "Purpose"
+                    },
+                    "version": {
+                        "type": "string",
+                        "title": "Version"
+                    },
+                    "given_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Given At"
+                    },
+                    "withdrawn_at": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Withdrawn At"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "purpose",
+                    "version",
+                    "given_at",
+                    "withdrawn_at"
+                ],
+                "title": "ConsentRecord"
+            },
+            "ConsentStatusResponse": {
+                "properties": {
+                    "has_active_consent": {
+                        "type": "boolean",
+                        "title": "Has Active Consent"
+                    },
+                    "current_version": {
+                        "type": "string",
+                        "title": "Current Version"
+                    },
+                    "records": {
+                        "items": {
+                            "$ref": "#/components/schemas/ConsentRecord"
+                        },
+                        "type": "array",
+                        "title": "Records"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "has_active_consent",
+                    "current_version",
+                    "records"
+                ],
+                "title": "ConsentStatusResponse"
+            },
+            "DeleteAccountRequest": {
+                "properties": {
+                    "password": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "minLength": 1,
+                        "title": "Password"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "password"
+                ],
+                "title": "DeleteAccountRequest"
+            },
+            "ForgotPasswordRequest": {
+                "properties": {
+                    "identifier": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "title": "Identifier"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "identifier"
+                ],
+                "title": "ForgotPasswordRequest"
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "InternshipDetail": {
+                "properties": {
+                    "internship_id": {
+                        "type": "string",
+                        "title": "Internship Id"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title"
+                    },
+                    "company_name": {
+                        "type": "string",
+                        "title": "Company Name"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Description"
+                    },
+                    "location": {
+                        "type": "string",
+                        "title": "Location"
+                    },
+                    "location_name": {
+                        "type": "string",
+                        "title": "Location Name"
+                    },
+                    "sector_name": {
+                        "type": "string",
+                        "title": "Sector Name"
+                    },
+                    "role_name": {
+                        "type": "string",
+                        "title": "Role Name"
+                    },
+                    "duration": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Duration"
+                    },
+                    "stipend_inr_per_month": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Stipend Inr Per Month"
+                    },
+                    "facilities": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Facilities"
+                    },
+                    "education_required": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Education Required"
+                    },
+                    "mandatory_skills": {
+                        "items": {
+                            "$ref": "#/components/schemas/SkillRef"
+                        },
+                        "type": "array",
+                        "title": "Mandatory Skills"
+                    },
+                    "preferred_skills": {
+                        "items": {
+                            "$ref": "#/components/schemas/SkillRef"
+                        },
+                        "type": "array",
+                        "title": "Preferred Skills"
+                    },
+                    "apply_url": {
+                        "type": "string",
+                        "title": "Apply Url"
+                    },
+                    "is_demo_data": {
+                        "type": "boolean",
+                        "title": "Is Demo Data"
+                    },
+                    "eligible": {
+                        "type": "boolean",
+                        "title": "Eligible"
+                    },
+                    "match_percentage": {
+                        "type": "number",
+                        "title": "Match Percentage"
+                    },
+                    "low_match": {
+                        "type": "boolean",
+                        "title": "Low Match"
+                    },
+                    "match_tag": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Match Tag"
+                    },
+                    "why_recommended": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Why Recommended"
+                    },
+                    "considerations": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Considerations"
+                    },
+                    "skill_gap": {
+                        "$ref": "#/components/schemas/SkillGap"
+                    },
+                    "disclaimer": {
+                        "type": "string",
+                        "title": "Disclaimer"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "internship_id",
+                    "title",
+                    "company_name",
+                    "description",
+                    "location",
+                    "location_name",
+                    "sector_name",
+                    "role_name",
+                    "duration",
+                    "stipend_inr_per_month",
+                    "facilities",
+                    "education_required",
+                    "mandatory_skills",
+                    "preferred_skills",
+                    "apply_url",
+                    "is_demo_data",
+                    "eligible",
+                    "match_percentage",
+                    "low_match",
+                    "match_tag",
+                    "why_recommended",
+                    "considerations",
+                    "skill_gap",
+                    "disclaimer"
+                ],
+                "title": "InternshipDetail"
+            },
+            "LoginRequest": {
+                "properties": {
+                    "identifier": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "title": "Identifier"
+                    },
+                    "password": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "minLength": 1,
+                        "title": "Password"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "identifier",
+                    "password"
+                ],
+                "title": "LoginRequest"
+            },
+            "MessageResponse": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "title": "Message"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "message"
+                ],
+                "title": "MessageResponse"
+            },
+            "NearestItem": {
+                "properties": {
+                    "internship_id": {
+                        "type": "string",
+                        "title": "Internship Id"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title"
+                    },
+                    "company_name": {
+                        "type": "string",
+                        "title": "Company Name"
+                    },
+                    "location_name": {
+                        "type": "string",
+                        "title": "Location Name"
+                    },
+                    "missing_mandatory_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Missing Mandatory Ids"
+                    },
+                    "missing_mandatory": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Missing Mandatory"
+                    },
+                    "education_gap_levels": {
+                        "type": "integer",
+                        "title": "Education Gap Levels"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "title": "Reason"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "internship_id",
+                    "title",
+                    "company_name",
+                    "location_name",
+                    "missing_mandatory_ids",
+                    "missing_mandatory",
+                    "education_gap_levels",
+                    "reason"
+                ],
+                "title": "NearestItem"
+            },
+            "NormalizeRequest": {
+                "properties": {
+                    "entry_type": {
+                        "type": "string",
+                        "enum": [
+                            "skill",
+                            "interest",
+                            "role",
+                            "sector",
+                            "field_of_study",
+                            "degree"
+                        ],
+                        "title": "Entry Type"
+                    },
+                    "text": {
+                        "type": "string",
+                        "title": "Text"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "entry_type",
+                    "text"
+                ],
+                "title": "NormalizeRequest"
+            },
+            "NormalizeResponse": {
+                "properties": {
+                    "mapped": {
+                        "type": "boolean",
+                        "title": "Mapped"
+                    },
+                    "method": {
+                        "type": "string",
+                        "title": "Method"
+                    },
+                    "entry": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/TaxonomyItem"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "suggestion": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/TaxonomyItem"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "flagged": {
+                        "type": "boolean",
+                        "title": "Flagged",
+                        "default": false
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "mapped",
+                    "method"
+                ],
+                "title": "NormalizeResponse"
+            },
+            "ProfileResponse": {
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "title": "Status"
+                    },
+                    "missing_fields": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Missing Fields"
+                    },
+                    "education_level_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Education Level Id"
+                    },
+                    "degree_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Degree Id"
+                    },
+                    "field_of_study_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Field Of Study Id"
+                    },
+                    "year_of_completion": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Year Of Completion"
+                    },
+                    "skill_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Skill Ids"
+                    },
+                    "interest_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Interest Ids"
+                    },
+                    "preferred_role_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Preferred Role Ids"
+                    },
+                    "preferred_sector_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Preferred Sector Ids"
+                    },
+                    "home_location_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Home Location Id"
+                    },
+                    "preferred_location_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Preferred Location Ids"
+                    },
+                    "willing_to_relocate": {
+                        "type": "boolean",
+                        "title": "Willing To Relocate"
+                    },
+                    "willing_to_travel": {
+                        "type": "boolean",
+                        "title": "Willing To Travel"
+                    },
+                    "duration_preference": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Duration Preference"
+                    },
+                    "stipend_expectation": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Stipend Expectation"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Updated At"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "status",
+                    "missing_fields",
+                    "education_level_id",
+                    "degree_id",
+                    "field_of_study_id",
+                    "year_of_completion",
+                    "skill_ids",
+                    "interest_ids",
+                    "preferred_role_ids",
+                    "preferred_sector_ids",
+                    "home_location_id",
+                    "preferred_location_ids",
+                    "willing_to_relocate",
+                    "willing_to_travel",
+                    "duration_preference",
+                    "stipend_expectation",
+                    "updated_at"
+                ],
+                "title": "ProfileResponse"
+            },
+            "ProfileUpdate": {
+                "properties": {
+                    "education_level_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Education Level Id"
+                    },
+                    "degree_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Degree Id"
+                    },
+                    "field_of_study_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Field Of Study Id"
+                    },
+                    "year_of_completion": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "maximum": 2040.0,
+                                "minimum": 1980.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Year Of Completion"
+                    },
+                    "skill_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array",
+                                "maxItems": 80
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Skill Ids"
+                    },
+                    "interest_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array",
+                                "maxItems": 30
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Interest Ids"
+                    },
+                    "preferred_role_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array",
+                                "maxItems": 30
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Preferred Role Ids"
+                    },
+                    "preferred_sector_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array",
+                                "maxItems": 30
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Preferred Sector Ids"
+                    },
+                    "home_location_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Home Location Id"
+                    },
+                    "preferred_location_ids": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "string"
+                                },
+                                "type": "array",
+                                "maxItems": 30
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Preferred Location Ids"
+                    },
+                    "willing_to_relocate": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Willing To Relocate"
+                    },
+                    "willing_to_travel": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Willing To Travel"
+                    },
+                    "duration_preference": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Duration Preference"
+                    },
+                    "stipend_expectation": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "maximum": 1000000.0,
+                                "minimum": 0.0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Stipend Expectation"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "title": "ProfileUpdate",
+                "description": "Send only the fields you want to change (save step by step). A list replaces the old list.\nSending null for a single value clears it."
+            },
+            "RecommendationItem": {
+                "properties": {
+                    "rank": {
+                        "type": "integer",
+                        "title": "Rank"
+                    },
+                    "internship_id": {
+                        "type": "string",
+                        "title": "Internship Id"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title"
+                    },
+                    "company_name": {
+                        "type": "string",
+                        "title": "Company Name"
+                    },
+                    "location": {
+                        "type": "string",
+                        "title": "Location"
+                    },
+                    "location_name": {
+                        "type": "string",
+                        "title": "Location Name"
+                    },
+                    "sector_name": {
+                        "type": "string",
+                        "title": "Sector Name"
+                    },
+                    "role_name": {
+                        "type": "string",
+                        "title": "Role Name"
+                    },
+                    "duration": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Duration"
+                    },
+                    "stipend_inr_per_month": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Stipend Inr Per Month"
+                    },
+                    "ranking_score": {
+                        "type": "number",
+                        "title": "Ranking Score"
+                    },
+                    "match_percentage": {
+                        "type": "number",
+                        "title": "Match Percentage"
+                    },
+                    "low_match": {
+                        "type": "boolean",
+                        "title": "Low Match"
+                    },
+                    "match_tag": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Match Tag"
+                    },
+                    "why_recommended": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Why Recommended"
+                    },
+                    "considerations": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Considerations"
+                    },
+                    "skill_gap": {
+                        "$ref": "#/components/schemas/SkillGap"
+                    },
+                    "apply_url": {
+                        "type": "string",
+                        "title": "Apply Url"
+                    },
+                    "is_demo_data": {
+                        "type": "boolean",
+                        "title": "Is Demo Data"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "rank",
+                    "internship_id",
+                    "title",
+                    "company_name",
+                    "location",
+                    "location_name",
+                    "sector_name",
+                    "role_name",
+                    "duration",
+                    "stipend_inr_per_month",
+                    "ranking_score",
+                    "match_percentage",
+                    "low_match",
+                    "match_tag",
+                    "why_recommended",
+                    "considerations",
+                    "skill_gap",
+                    "apply_url",
+                    "is_demo_data"
+                ],
+                "title": "RecommendationItem"
+            },
+            "RecommendationsResponse": {
+                "properties": {
+                    "method": {
+                        "type": "string",
+                        "title": "Method"
+                    },
+                    "k": {
+                        "type": "integer",
+                        "title": "K"
+                    },
+                    "count": {
+                        "type": "integer",
+                        "title": "Count"
+                    },
+                    "eligible_count": {
+                        "type": "integer",
+                        "title": "Eligible Count"
+                    },
+                    "total_internships": {
+                        "type": "integer",
+                        "title": "Total Internships"
+                    },
+                    "message": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Message"
+                    },
+                    "is_demo_data": {
+                        "type": "boolean",
+                        "title": "Is Demo Data"
+                    },
+                    "demo_notice": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Demo Notice"
+                    },
+                    "disclaimer": {
+                        "type": "string",
+                        "title": "Disclaimer"
+                    },
+                    "recommendations": {
+                        "items": {
+                            "$ref": "#/components/schemas/RecommendationItem"
+                        },
+                        "type": "array",
+                        "title": "Recommendations"
+                    },
+                    "skill_gap_summary": {
+                        "items": {
+                            "$ref": "#/components/schemas/SkillGapSummaryItem"
+                        },
+                        "type": "array",
+                        "title": "Skill Gap Summary"
+                    },
+                    "nearest": {
+                        "items": {
+                            "$ref": "#/components/schemas/NearestItem"
+                        },
+                        "type": "array",
+                        "title": "Nearest"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "method",
+                    "k",
+                    "count",
+                    "eligible_count",
+                    "total_internships",
+                    "message",
+                    "is_demo_data",
+                    "demo_notice",
+                    "disclaimer",
+                    "recommendations",
+                    "skill_gap_summary",
+                    "nearest"
+                ],
+                "title": "RecommendationsResponse"
+            },
+            "RegisterRequest": {
+                "properties": {
+                    "full_name": {
+                        "type": "string",
+                        "maxLength": 150,
+                        "title": "Full Name"
+                    },
+                    "email": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "format": "email"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Email"
+                    },
+                    "mobile": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Mobile"
+                    },
+                    "password": {
+                        "type": "string",
+                        "title": "Password"
+                    },
+                    "consent": {
+                        "type": "boolean",
+                        "title": "Consent"
+                    },
+                    "preferred_language": {
+                        "type": "string",
+                        "enum": [
+                            "en",
+                            "hi",
+                            "mr"
+                        ],
+                        "title": "Preferred Language",
+                        "default": "en"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "full_name",
+                    "password",
+                    "consent"
+                ],
+                "title": "RegisterRequest"
+            },
+            "RelatedSkill": {
+                "properties": {
+                    "missing": {
+                        "type": "string",
+                        "title": "Missing"
+                    },
+                    "you_have": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "You Have"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "missing",
+                    "you_have"
+                ],
+                "title": "RelatedSkill"
+            },
+            "SavedItem": {
+                "properties": {
+                    "internship_id": {
+                        "type": "string",
+                        "title": "Internship Id"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title"
+                    },
+                    "company_name": {
+                        "type": "string",
+                        "title": "Company Name"
+                    },
+                    "location_name": {
+                        "type": "string",
+                        "title": "Location Name"
+                    },
+                    "duration": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Duration"
+                    },
+                    "stipend_inr_per_month": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Stipend Inr Per Month"
+                    },
+                    "is_demo_data": {
+                        "type": "boolean",
+                        "title": "Is Demo Data"
+                    },
+                    "saved_at": {
+                        "type": "string",
+                        "title": "Saved At"
+                    },
+                    "eligible": {
+                        "anyOf": [
+                            {
+                                "type": "boolean"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Eligible"
+                    },
+                    "match_percentage": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Match Percentage"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "internship_id",
+                    "title",
+                    "company_name",
+                    "location_name",
+                    "duration",
+                    "stipend_inr_per_month",
+                    "is_demo_data",
+                    "saved_at"
+                ],
+                "title": "SavedItem"
+            },
+            "SettingsUpdate": {
+                "properties": {
+                    "preferred_language": {
+                        "type": "string",
+                        "enum": [
+                            "en",
+                            "hi",
+                            "mr"
+                        ],
+                        "title": "Preferred Language"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "preferred_language"
+                ],
+                "title": "SettingsUpdate"
+            },
+            "SkillGap": {
+                "properties": {
+                    "missing_mandatory": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Missing Mandatory"
+                    },
+                    "missing_preferred": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Missing Preferred"
+                    },
+                    "related_skills": {
+                        "items": {
+                            "$ref": "#/components/schemas/RelatedSkill"
+                        },
+                        "type": "array",
+                        "title": "Related Skills"
+                    },
+                    "missing_mandatory_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Missing Mandatory Ids"
+                    },
+                    "missing_preferred_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Missing Preferred Ids"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "missing_mandatory",
+                    "missing_preferred",
+                    "related_skills",
+                    "missing_mandatory_ids",
+                    "missing_preferred_ids"
+                ],
+                "title": "SkillGap"
+            },
+            "SkillGapSummaryItem": {
+                "properties": {
+                    "skill_id": {
+                        "type": "string",
+                        "title": "Skill Id"
+                    },
+                    "skill": {
+                        "type": "string",
+                        "title": "Skill"
+                    },
+                    "count": {
+                        "type": "integer",
+                        "title": "Count"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "skill_id",
+                    "skill",
+                    "count"
+                ],
+                "title": "SkillGapSummaryItem"
+            },
+            "SkillRef": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "title": "SkillRef"
+            },
+            "TaxonomyItem": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Id"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Name"
+                    },
+                    "parent_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Parent Id"
+                    },
+                    "order_rank": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Order Rank"
+                    },
+                    "latitude": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Latitude"
+                    },
+                    "longitude": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Longitude"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "title": "TaxonomyItem"
+            },
+            "TokenResponse": {
+                "properties": {
+                    "access_token": {
+                        "type": "string",
+                        "title": "Access Token"
+                    },
+                    "token_type": {
+                        "type": "string",
+                        "title": "Token Type",
+                        "default": "bearer"
+                    },
+                    "expires_in": {
+                        "type": "integer",
+                        "title": "Expires In"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/UserResponse"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "access_token",
+                    "expires_in",
+                    "user"
+                ],
+                "title": "TokenResponse"
+            },
+            "UserResponse": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "title": "Id"
+                    },
+                    "full_name": {
+                        "type": "string",
+                        "title": "Full Name"
+                    },
+                    "email": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Email"
+                    },
+                    "mobile": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Mobile"
+                    },
+                    "role": {
+                        "type": "string",
+                        "title": "Role"
+                    },
+                    "preferred_language": {
+                        "type": "string",
+                        "title": "Preferred Language"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "full_name",
+                    "email",
+                    "mobile",
+                    "role",
+                    "preferred_language",
+                    "created_at"
+                ],
+                "title": "UserResponse"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    },
+                    "input": {
+                        "title": "Input"
+                    },
+                    "ctx": {
+                        "type": "object",
+                        "title": "Context"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        },
+        "securitySchemes": {
+            "HTTPBearer": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        }
+    }
+}

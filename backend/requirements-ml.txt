@@ -1,5 +1,5 @@
-# OPTIONAL: only for matching_method = hybrid or semantic (downloads a ~90 MB model on first use, needs ~1 GB disk)
--r requirements.txt
+# OPTIONAL: only for MATCHING_METHOD=hybrid or semantic (downloads a ~90 MB model on first use, ~1 GB disk).
+# Install on top of requirements.txt:  pip install -r requirements-ml.txt
 torch
 transformers
-sentence-transformers
+sentence-transformers>=2.7

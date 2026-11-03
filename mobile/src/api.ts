@@ -31,6 +31,22 @@ export type RecommendationsResponse = {
   recommendations: RecommendationItem[]; skill_gap_summary: { skill_id: string; skill: string; count: number }[]; nearest: NearestItem[];
 };
 
+export type SavedItem = { internship_id: string; title: string; company_name: string; location_name: string; duration: string | null; stipend_inr_per_month: number | null; is_demo_data: boolean; saved_at: string; eligible: boolean | null; match_percentage: number | null };
+
+export type BrowseItem = {
+  internship_id: string; title: string; company_name: string; location: string; location_name: string; sector_name: string; role_name: string;
+  duration: string | null; stipend_inr_per_month: number | null; is_demo_data: boolean; apply_url: string; saved: boolean;
+  eligible: boolean | null; match_percentage: number | null; low_match: boolean | null; missing_mandatory: string[]; education_ok: boolean | null;
+};
+export type BrowseResponse = { total: number; limit: number; offset: number; profile_complete: boolean; items: BrowseItem[] };
+export type InternshipDetail = {
+  internship_id: string; title: string; company_name: string; description: string; location_name: string; sector_name: string; role_name: string;
+  duration: string | null; stipend_inr_per_month: number | null; education_required: string | null;
+  mandatory_skills: { id: string; name: string }[]; preferred_skills: { id: string; name: string }[]; apply_url: string; is_demo_data: boolean;
+  eligible: boolean; match_percentage: number; low_match: boolean; why_recommended: string[]; considerations: string[];
+  skill_gap: { missing_mandatory: string[]; missing_preferred: string[] };
+};
+
 export class ApiError extends Error {
   constructor(public status: number, public code: string, message: string, public fields: { field: string; message: string }[] = []) { super(message); }
   fieldMessage(f: string) { return this.fields.find((x) => x.field === f)?.message; }
@@ -84,8 +100,16 @@ export const api = {
   getProfile: () => req<ApiProfile>("/me/profile"),
   updateProfile: (patch: ProfileUpdate) => req<ApiProfile>("/me/profile", { method: "PATCH", ...json(patch) }),
   confirmProfile: () => req<ApiProfile>("/me/profile/confirm", { method: "POST" }),
-  recommendations: (k?: number) => req<RecommendationsResponse>(`/me/recommendations${k ? `?k=${k}` : ""}`),
+  recommendations: (k?: number, lang?: string) => req<RecommendationsResponse>(`/me/recommendations?${new URLSearchParams({ ...(k ? { k: String(k) } : {}), ...(lang ? { lang } : {}) })}`),
+  internship: (id: string, lang?: string) => req<InternshipDetail>(`/me/recommendations/${id}${lang ? `?lang=${lang}` : ""}`),
+  browse: (o: { scope: "all" | "suitable"; q?: string; sector?: string; city?: string; limit?: number; offset?: number }) => {
+    const p = new URLSearchParams({ scope: o.scope, limit: String(o.limit ?? 12), offset: String(o.offset ?? 0) });
+    if (o.q) p.set("q", o.q); if (o.sector) p.set("sector", o.sector); if (o.city) p.set("city", o.city);
+    return req<BrowseResponse>(`/me/internships?${p}`);
+  },
   saved: () => req<{ internship_id: string }[]>("/me/saved"),
+  savedFull: () => req<SavedItem[]>("/me/saved"),
+  updateSettings: (preferred_language: "en" | "hi" | "mr") => req<User>("/me/settings", { method: "PATCH", ...json({ preferred_language }) }),
   save: (id: string) => req<unknown>(`/me/saved/${id}`, { method: "PUT" }),
   unsave: (id: string) => req<unknown>(`/me/saved/${id}`, { method: "DELETE" }),
 };

@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, TextInputProps, View } from "react-native";
-import { colors, fonts } from "../theme";
+import { useTheme, Colors, fonts } from "../theme";
 
 type Props = TextInputProps & { label: string; secure?: boolean; rightLabel?: string; onRightPress?: () => void; hint?: string };
 
 export default function Field({ label, secure, rightLabel, onRightPress, hint, ...rest }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [focus, setFocus] = useState(false);
   const [hidden, setHidden] = useState(true);
   return (
@@ -21,7 +23,7 @@ export default function Field({ label, secure, rightLabel, onRightPress, hint, .
         <TextInput
           {...rest}
           secureTextEntry={secure && hidden}
-          placeholderTextColor="#9aa5aa"
+          placeholderTextColor={colors.faint}
           onFocus={() => setFocus(true)}
           onBlur={() => setFocus(false)}
           style={[styles.input, focus && styles.focus, secure && { paddingRight: 70 }]}
@@ -37,7 +39,7 @@ export default function Field({ label, secure, rightLabel, onRightPress, hint, .
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Colors) => StyleSheet.create({
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
   label: { fontSize: 14, fontFamily: fonts.semibold, color: colors.text },
   link: { fontSize: 12.5, fontFamily: fonts.bold, color: colors.teal },

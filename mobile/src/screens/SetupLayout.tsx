@@ -1,14 +1,16 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import Header from "../components/Header";
 import Stepper from "../components/Stepper";
 import FadeIn from "../components/FadeIn";
-import { colors, fonts, shadow } from "../theme";
+import { useTheme, Colors, fonts, shadow } from "../theme";
 
 type Props = { step: 1 | 2 | 3; eyebrow: string; title: string; subtitle: string; children: React.ReactNode; footer?: React.ReactNode };
 
 // Shared layout for the 3 profile-setup screens (mirrors .profile-card on the web).
 export default function SetupLayout({ step, eyebrow, title, subtitle, children, footer }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={{ flex: 1, backgroundColor: colors.cream }}>
       <Header />
@@ -30,7 +32,7 @@ export default function SetupLayout({ step, eyebrow, title, subtitle, children, 
   );
 }
 
-export const setupStyles = StyleSheet.create({
+export const makeSetupStyles = (colors: Colors) => StyleSheet.create({
   h2: { fontSize: 17, fontFamily: fonts.bold, color: colors.text },
   p: { fontSize: 13.5, color: colors.muted, marginTop: 4, fontFamily: fonts.body, lineHeight: 20 },
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginTop: 14 },
@@ -40,9 +42,11 @@ export const setupStyles = StyleSheet.create({
   back: { textAlign: "center", color: colors.muted, fontFamily: fonts.semibold, fontSize: 14, paddingVertical: 12 },
 });
 
-const styles = StyleSheet.create({
-  card: { backgroundColor: "#fff", borderRadius: 20, padding: 22, borderWidth: 1, borderColor: "rgba(37,107,115,0.09)", ...shadow },
+const makeStyles = (colors: Colors) => StyleSheet.create({
+  card: { backgroundColor: colors.white, borderRadius: 20, padding: 22, borderWidth: 1, borderColor: "rgba(37,107,115,0.09)", ...shadow },
   eyebrow: { color: colors.teal, fontSize: 12, fontFamily: fonts.bold, letterSpacing: 1.5, marginBottom: 10 },
   h1: { fontSize: 26, fontFamily: fonts.headXL, color: colors.text, textAlign: "center", letterSpacing: -0.8, lineHeight: 32 },
   sub: { color: colors.muted, fontSize: 14, textAlign: "center", marginTop: 12, lineHeight: 22, fontFamily: fonts.body },
 });
+
+export const useSetupStyles = () => { const { colors } = useTheme(); return useMemo(() => makeSetupStyles(colors), [colors]); };

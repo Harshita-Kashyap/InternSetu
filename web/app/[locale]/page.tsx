@@ -1,19 +1,17 @@
 
 "use client";
-import LanguageSwitcher from "../components/LanguageSwitcher";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AuthShell from "../components/AuthShell";
 import { useToast } from "../components/Toast";
-import {
-  startSession,
-  hasPrivacyConsent,
-} from "../lib/store";
+import { api, ApiError } from "../lib/api";
 import { useTranslations } from "next-intl";
+import { useT } from "../../i18n/useT";
 
 export default function Home() {
   const t = useTranslations("Login");
+  const tr = useT();
   const router = useRouter();
   const { toast, show } = useToast();
   const [showPassword, setShowPassword] = useState(false);
@@ -21,28 +19,29 @@ export default function Home() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = (event: React.FormEvent) => {
+  const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!username.trim() || !password) {
       show(t("passwordRequired"));
       return;
     }
     setLoading(true);
-    startSession(username.trim());
-    setTimeout(() => {
-  if (hasPrivacyConsent()) {
-    router.push("/profile");
-  } else {
-    router.push("/consent");
-  }
-}, 700);
+    try {
+      const r = await api.login(username.trim(), password);
+      if (r.user.role === "admin") { router.push("/admin"); return; }
+      const c = await api.consent().catch(() => ({ has_active_consent: true }));
+      if (!c.has_active_consent) { router.push("/consent"); return; }
+      // completed profiles go straight to the discovery home; setup only when still a draft
+      const prof = await api.getProfile().catch(() => null);
+      router.push(prof?.status === "complete" ? "/home" : "/profile");
+    } catch (e) {
+      show(e instanceof ApiError ? e.message : "Could not sign in.");
+      setLoading(false);
+    }
   };
 
   return (
   <AuthShell>
-    <div className="language-switcher">
-      <LanguageSwitcher />
-    </div>
 
     <section className="login-card card-rise">
         <div className="login-header">
@@ -110,11 +109,9 @@ export default function Home() {
 
         <div className="login-footer">
           <span className="footer-dot"></span>
-          <div className="login-footer">
-  <span className="footer-dot"></span>
-  {t("secureFooter")}
-</div>
+          {t("secureFooter")}
         </div>
+        <p className="admin-entry"><Link href="/admin">{tr("Administrator sign-in")}</Link></p>
       </section>
       {toast}
     </AuthShell>

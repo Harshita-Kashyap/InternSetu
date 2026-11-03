@@ -1,79 +1,60 @@
 # InternSetu Backend (FastAPI)
 
-Batch 1: foundation, authentication, consent/privacy, admin seeding.
-Batch 2: taxonomy, internship and profile tables, dataset loader, taxonomy API, text-to-taxonomy matching.
-Batch 3: profile API, recommendation engine (teammate's code in `app/engine`), saved internships, API client for web and mobile.
+REST API for the InternSetu web and mobile apps: accounts and consent, taxonomy, candidate profiles, internship
+recommendations (engine in `app/engine`), saved internships and an admin console.
+All data is **synthetic**; "Apply" only links to the official PMIS portal (`PMIS_PORTAL_URL`).
+Python 3.11-3.14. Run every command from this `backend/` folder.
 
-**Start here: `docs/INTEGRATION.md`** (how to test the backend and connect the web and mobile apps).
-Python 3.12 recommended. Run all commands from this `backend/` folder.
-
-## First-time setup (Windows PowerShell; on Linux/macOS use `source .venv/bin/activate`)
-
+## Start the backend (first time)
 ```
 python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements-dev.txt
-copy .env.example .env
+.venv\Scripts\Activate.ps1                 # Linux/macOS: source .venv/bin/activate
+pip install -r requirements.txt            # add: pip install -r requirements-ml.txt  only for hybrid/semantic
+copy .env.example .env                     # then edit .env (see below)
 ```
-1. In pgAdmin create an empty database named `internsetu`.
-2. Edit `.env`: put your Postgres password in `DATABASE_URL` and a secret in `SECRET_KEY`
-   (`python -c "import secrets; print(secrets.token_hex(32))"`).
-3. Create the tables:        `alembic upgrade head`
-   Load the datasets:       `python -m app.scripts.load_datasets --all`  (safe to run again)
-4. Create an admin account:  `python -m app.scripts.create_admin --name "Your Name" --email you@example.com`
-5. Start the server:         `uvicorn app.main:app --reload`
-6. Open http://localhost:8000/docs to try every endpoint.
+1. Create an empty PostgreSQL database named `internsetu` (pgAdmin or `createdb internsetu`).
+2. Edit `.env`: `DATABASE_URL` (your Postgres password) and `SECRET_KEY` (32+ chars:
+   `python -c "import secrets; print(secrets.token_hex(32))"`). Optional: `MATCHING_METHOD`, `DEFAULT_K`, `CORS_ORIGINS`.
+3. `python -m app.scripts.check_db` - optional, confirms the database connection.
+4. `alembic upgrade head` - creates all tables.
+5. `python -m app.scripts.load_datasets --all` - loads taxonomy, city coordinates, 750 internships, 350 candidates
+   from `data/` (safe to re-run; **required**, otherwise there is nothing to recommend).
+6. `python -m app.scripts.create_admin --name "Your Name" --email you@example.com` - admin account (asks for password).
+7. `uvicorn app.main:app --reload` - API on http://localhost:8000, docs at `/docs`.
 
-## Run the tests (no Postgres needed, uses in-memory SQLite)
-```
-pytest
-```
+Next time only step 7 is needed (plus step 4 after pulling new migrations).
+Web `.env.local` must point to this server, and `CORS_ORIGINS` must include the web origin.
 
-## API summary (all under `/api/v1`, JSON)
+## Tests
+`pytest` - uses in-memory SQLite, no Postgres needed. Live check: `python -m app.scripts.smoke_test` (server running).
 
-| Method & path | Auth | Purpose |
-|---|---|---|
-| POST `/auth/register` | – | Body: `full_name`, `email` and/or `mobile`, `password` (8+ chars, letter + number), `consent: true`, optional `preferred_language` (`en`/`hi`/`mr`). Returns token + user. |
-| POST `/auth/login` | – | Body: `identifier` (email or mobile), `password`. Returns token + user. Locks for 15 min after 5 failures. |
-| GET `/auth/me` | Bearer | Current user. |
-| POST `/auth/change-password` | Bearer | `current_password`, `new_password`. |
-| POST `/auth/forgot-password`, `/auth/reset-password` | – | Stubs (no email/SMS in release 1.0). |
-| GET / POST / DELETE `/me/consent` | Bearer | View status / give / withdraw consent. |
-| GET `/me/export` | Bearer | Download all my data. |
-| DELETE `/me` | Bearer | Body `{"password": "..."}`. Deletes account and data. |
-| GET `/admin/ping` | Admin | Confirms admin role. |
-| GET `/health` (no prefix) | – | Server + database status. |
-
-Send the token as `Authorization: Bearer <token>`.
-
-**Errors** always look like
-`{"error": {"code": "invalid_credentials", "message": "...", "fields": [{"field": "consent", "message": "..."}]}}`
-(`fields` only appears for validation errors, so the UI can show each message next to its input).
-
-## Datasets (`data/`)
-- `internsetu_taxonomy.json`, `internsetu_synthetic_internships_v1.json`, `internsetu_synthetic_candidates_v1.json` - your files, unchanged.
-- `locations_coordinates.csv` - approximate latitude/longitude of the 70 cities (please spot-check).
-- `ui_taxonomy_en.json` - id -> English name for the apps' translation files (`python -m app.scripts.export_ui_taxonomy`).
-
-## Endpoints (all under `/api/v1`; see http://localhost:8000/docs for the full list with examples)
+## API (all under `/api/v1`, JSON, `Authorization: Bearer <token>`)
 | Area | Endpoints |
 |---|---|
-| Auth | `POST /auth/register`, `/auth/login`, `GET /auth/me`, `POST /auth/change-password`, forgot/reset (stubs) |
-| Account | `GET/POST/DELETE /me/consent`, `GET /me/export`, `DELETE /me`, `PATCH /me/settings` (UI language) |
-| Taxonomy | `GET /taxonomy/{type}?q=&parent=&limit=`, `GET /taxonomy/durations`, `POST /taxonomy/normalize` |
+| Auth | `POST /auth/register`, `/auth/login`, `GET /auth/me`, `POST /auth/change-password`, forgot/reset (stubs, no email/SMS) |
+| Account | `GET/POST/DELETE /me/consent`, `GET /me/export`, `DELETE /me`, `PATCH /me/settings` |
+| Taxonomy | `GET /taxonomy/{type}`, `/taxonomy/durations`, `POST /taxonomy/normalize` |
 | Profile | `GET/PATCH /me/profile`, `POST /me/profile/confirm` |
-| Recommendations | `GET /me/recommendations?k=&method=`, `GET /me/recommendations/{internship_id}`, `GET /me/skill-gap` |
+| Recommendations | `GET /me/recommendations`, `/me/recommendations/{internship_id}`, `/me/skill-gap` |
+| Discovery | `GET /me/internships?scope=all|suitable&q=&sector=&city=&limit=&offset=` (eligibility + match % when profile is complete) |
 | Saved | `GET /me/saved`, `PUT/DELETE /me/saved/{internship_id}` |
-| Admin | `GET /admin/ping` (more in the next batch) |
-| System | `GET /health` |
+| Admin (role `admin`) | `/admin/ping`, `stats`, `weights` (must total 100%), `taxonomy`, `flagged`, `internships` (+ CSV `import`, activate/deactivate), `evaluation` |
+| System | `GET /health` (no prefix) |
 
-Settings in `.env`: `MATCHING_METHOD` (`baseline` default, `tfidf`, `hybrid`, `semantic`), `DEFAULT_K` (3 to 5), `PMIS_PORTAL_URL`.
+Errors: `{"error": {"code": "...", "message": "...", "fields": [{"field": "...", "message": "..."}]}}`.
+Login locks for 15 min after 5 failures (in-memory, one server process). The backend is English-only; apps translate the UI.
 
-## Notes
-- The backend is English-only; the apps translate the UI (see `docs/INTEGRATION.md`, section 3).
-- Mobile numbers are stored as 10 digits (`+91`/`0` prefixes are accepted and removed).
-- The old public `POST /users` route was removed: it created accounts with no password.
-- Login lockout is in-memory (fine for one server process).
-- Folder layout: `app/api` routes · `app/core` config/security · `app/models` DB tables ·
-  `app/schemas` request/response shapes · `app/services` business logic ·
-  `app/services/recommendation` (engine, next step).
+## Folders
+`app/api` routes - `app/core` config, DB, security, errors - `app/models` tables - `app/schemas` request/response shapes -
+`app/services` business logic - `app/engine` recommendation engine - `app/scripts` command-line tools -
+`alembic` migrations - `data` datasets - `tests` - `docs` (see below).
+
+## Docs
+- `docs/INTEGRATION.md` - testing and connecting web/mobile. `docs/api-client.ts` - typed client example.
+- `docs/ENGINE_INTEGRATION_NOTES.md`, `docs/engine_README_from_teammate.md` - how the engine is plugged in and how it scores.
+
+## Deployment
+`docker compose up --build`, then `docker compose exec api python -m app.scripts.load_datasets --all`.
+Put TLS in front (`Caddyfile`), use a long random `SECRET_KEY`, never commit `.env`.
+Note: the Dockerfile creates tables with `create_all`; for production prefer `alembic upgrade head`.
+`WARM_UP=0` disables the start-up model warm-up.

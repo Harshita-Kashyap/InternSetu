@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from "react";
+import React, { useMemo, useEffect, useRef } from "react";
 import { Animated, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors, shadow } from "../theme";
+import { useTheme, Colors, shadow } from "../theme";
 import FadeIn from "../components/FadeIn";
 
 function Orb({ size, top, left, right, delay }: { size: number; top?: number; left?: number; right?: number; delay: number }) {
@@ -24,12 +25,15 @@ function Orb({ size, top, left, right, delay }: { size: number; top?: number; le
 
 // Shared shell for Login / Register / Forgot password: cream bg, floating orbs, logo, card.
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.cream }}>
       <Orb size={220} top={-60} right={-60} delay={0} />
       <Orb size={140} top={420} left={-50} delay={1200} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <View style={{ alignItems: "flex-end", marginBottom: 6 }}><LanguageSwitcher /></View>
           <FadeIn style={{ alignItems: "center" }}>
             <Image source={require("../../assets/logo.png")} style={styles.logo} resizeMode="contain" />
           </FadeIn>
@@ -41,8 +45,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Colors) => StyleSheet.create({
   scroll: { flexGrow: 1, justifyContent: "center", padding: 20 },
   logo: { width: 220, height: 90, marginBottom: 14 },
-  card: { backgroundColor: "#fff", borderRadius: 20, padding: 26, borderWidth: 1, borderColor: "rgba(37,107,115,0.1)", ...shadow },
+  card: { backgroundColor: colors.white, borderRadius: 20, padding: 26, borderWidth: 1, borderColor: "rgba(37,107,115,0.1)", ...shadow },
 });

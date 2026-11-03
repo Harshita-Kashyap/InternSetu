@@ -1,28 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useT } from "../../../i18n/useT";
 import Link from "next/link";
+import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import Header from "../../components/Header";
+import Ring from "../../components/Ring";
 import { useToast } from "../../components/Toast";
 import { api, ApiError, RecommendationsResponse } from "../../lib/api";
 
-function Ring({ value }: { value: number }) {
-  const r = 22, c = 2 * Math.PI * r;
-  const [on, setOn] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setOn(true), 150); return () => clearTimeout(t); }, []);
-  return (
-    <div className="ring" aria-label={`${value}% match`}>
-      <svg viewBox="0 0 56 56">
-        <circle className="ring-bg" cx="28" cy="28" r={r} />
-        <circle className="ring-fg" cx="28" cy="28" r={r} strokeDasharray={c} strokeDashoffset={on ? c * (1 - value / 100) : c} />
-      </svg>
-      <b>{Math.round(value)}%</b>
-    </div>
-  );
-}
-
 export default function RecommendationsPage() {
+  const tr = useT();
+  const locale = useLocale();
   const router = useRouter();
   const { toast, show } = useToast();
   const [data, setData] = useState<RecommendationsResponse | null>(null);
@@ -32,48 +22,61 @@ export default function RecommendationsPage() {
   useEffect(() => {
     (async () => {
       try {
-        setData(await api.recommendations());
+        setData(await api.recommendations(undefined, locale));
         setSaved(((await api.saved()) as { internship_id: string }[]).map((s) => s.internship_id));
       } catch (e) {
         if (e instanceof ApiError && e.code === "profile_incomplete") return router.replace("/profile");
         if (e instanceof ApiError && e.code === "consent_required") return router.replace("/consent");
-        show(e instanceof ApiError ? e.message : "Could not load recommendations.");
+        show(e instanceof ApiError ? e.message : tr("Could not load recommendations."));
       } finally { setLoading(false); }
     })();
-  }, [router, show]);
+  }, [router, show, locale]);
 
   const toggleSave = async (id: string) => {
     const on = saved.includes(id);
     try {
       await (on ? api.unsave(id) : api.save(id));
       setSaved(on ? saved.filter((x) => x !== id) : [...saved, id]);
-      show(on ? "Removed from saved." : "Saved for later.", "success");
-    } catch (e) { show(e instanceof ApiError ? e.message : "Could not update saved list."); }
+      show(on ? tr("Removed from saved.") : tr("Saved for later."), "success");
+    } catch (e) { show(e instanceof ApiError ? e.message : tr("Could not update saved list.")); }
   };
 
   const recs = data?.recommendations ?? [];
   return (
     <main className="profile-page">
-      <Header label="Your Recommendations" />
+      <Header label={tr("Your Recommendations")} />
       <section className="reco-wrap">
         <div className="reco-hero card-rise">
           <div>
-            <p className="profile-eyebrow">PERSONALISED FOR YOU</p>
-            <h1>Your internship matches</h1>
-            <p className="reco-sub">{data?.message || "Based on your education, skills and preferences."}</p>
+            <p className="profile-eyebrow">{tr("PERSONALISED FOR YOU")}</p>
+            <h1>{tr("Your internship matches")}</h1>
+            <p className="reco-sub">{data?.message || tr("Based on your education, skills and preferences.")}</p>
             <div className="reco-actions">
-              <Link href="/profile" className="reco-edit">Edit profile</Link>
-              <Link href="/profile/preferences" className="reco-edit">Change preferences</Link>
+              <Link href="/saved" className="apply-btn">♥ {tr("Saved")}</Link>
+              <Link href="/profile" className="reco-edit">{tr("Edit profile")}</Link>
+              <Link href="/profile/preferences" className="reco-edit">{tr("Change preferences")}</Link>
             </div>
           </div>
           <div className="reco-stats">
-            <div><b>{data?.eligible_count ?? 0}</b><span>Eligible</span></div>
-            <div><b>{recs.length}</b><span>Top matches</span></div>
+            <div><b>{data?.eligible_count ?? 0}</b><span>{tr("Eligible")}</span></div>
+            <div><b>{recs.length}</b><span>{tr("Top matches")}</span></div>
           </div>
         </div>
         {data?.demo_notice && <p className="field-hint">{data.demo_notice}</p>}
-        {loading && <p>Loading…</p>}
-        {!loading && recs.length === 0 && <p>No eligible internships yet. Try adding more skills or another city.</p>}
+        {loading && <p>{tr("Loading…")}</p>}
+        {!loading && recs.length === 0 && <p>{tr("No eligible internships yet. Try adding more skills or another city.")}</p>}
+        {!loading && recs.length === 0 && (data?.nearest?.length ?? 0) > 0 && (
+          <div className="job-grid">
+            <h2 style={{ gridColumn: "1 / -1" }}>{tr("Closest matches")}</h2>
+            {data!.nearest!.map((n) => (
+              <article className="job-card" key={n.internship_id}>
+                <div className="job-title"><h3>{n.title}</h3><p>{n.company_name} · {n.location_name}</p></div>
+                <p>{n.reason}</p>
+                {n.missing_mandatory.length > 0 && <div className="job-skills"><b>{tr("Missing required skills:")}</b> {n.missing_mandatory.map((m) => <span className="skill-pill" key={m}>{m}</span>)}</div>}
+              </article>
+            ))}
+          </div>
+        )}
         <div className="job-grid stagger">
           {recs.map((j) => (
             <article className="job-card" key={j.internship_id}>
@@ -86,29 +89,35 @@ export default function RecommendationsPage() {
                 <span className="tag tag-domain">{j.sector_name}</span>
                 {j.duration && <span className="tag">{j.duration}</span>}
                 {j.match_tag && <span className="tag">{j.match_tag}</span>}
-                {j.is_demo_data && <span className="tag">Demo data</span>}
+                {j.is_demo_data && <span className="tag">{tr("Demo data")}</span>}
               </div>
               <div style={{ marginTop: 16 }}>
-                <h4>Why this matches</h4>
-                {j.why_recommended.length ? <ul>{j.why_recommended.map((r) => <li key={r}>{r}</li>)}</ul> : <p>Build relevant skills to improve this match.</p>}
+                <h4>{tr("Why this matches")}</h4>
+                {j.why_recommended.length ? <ul>{j.why_recommended.map((r) => <li key={r}>{r}</li>)}</ul> : <p>{tr("Build relevant skills to improve this match.")}</p>}
                 {j.considerations.length > 0 && <ul>{j.considerations.map((r) => <li key={r}>{r}</li>)}</ul>}
-                <h4>Skills to improve</h4>
+                <h4>{tr("Skills to improve")}</h4>
                 {[...j.skill_gap.missing_mandatory, ...j.skill_gap.missing_preferred].length ? (
                   <div className="job-skills">{[...j.skill_gap.missing_mandatory, ...j.skill_gap.missing_preferred].map((s) => <small key={s}>{s}</small>)}</div>
-                ) : <p>You have all the listed skills.</p>}
+                ) : <p>{tr("You have all the listed skills.")}</p>}
               </div>
               <div className="job-bottom">
-                <strong>{j.stipend_inr_per_month ? `₹${j.stipend_inr_per_month.toLocaleString("en-IN")}/mo` : "Stipend not listed"}</strong>
+                <strong>{j.stipend_inr_per_month ? `₹${j.stipend_inr_per_month.toLocaleString("en-IN")}/mo` : tr("Stipend not listed")}</strong>
                 <div>
-                  <button type="button" className={`save-btn ${saved.includes(j.internship_id) ? "on" : ""}`} aria-label="Save internship" onClick={() => toggleSave(j.internship_id)}>
+                  <button type="button" className={`save-btn ${saved.includes(j.internship_id) ? "on" : ""}`} aria-label={tr("Save internship")} onClick={() => toggleSave(j.internship_id)}>
                     {saved.includes(j.internship_id) ? "♥" : "♡"}
                   </button>
-                  <a className="apply-btn" href={j.apply_url} target="_blank" rel="noopener noreferrer">Apply on PMIS</a>
+                  <a className="apply-btn" href={j.apply_url} target="_blank" rel="noopener noreferrer">{tr("Apply on PMIS")}</a>
                 </div>
               </div>
             </article>
           ))}
         </div>
+        {(data?.skill_gap_summary?.length ?? 0) > 0 && (
+          <div className="job-skills" style={{ margin: "16px 0" }}>
+            <h3>{tr("Skills that would help most")}</h3>
+            {data!.skill_gap_summary!.map((g) => <span className="skill-pill" key={g.skill_id}>{g.skill} ×{g.count}</span>)}
+          </div>
+        )}
         {data?.disclaimer && <p className="field-hint">{data.disclaimer}</p>}
       </section>
       {toast}

@@ -112,3 +112,31 @@ class SavedItem(BaseModel):
     saved_at: str
     eligible: bool | None = None          # null until the profile is complete
     match_percentage: float | None = None
+
+
+class BrowseItem(BaseModel):
+    internship_id: str
+    title: str
+    company_name: str
+    location: str                         # city id
+    location_name: str
+    sector_name: str
+    role_name: str
+    duration: str | None
+    stipend_inr_per_month: int | None
+    is_demo_data: bool
+    apply_url: str
+    saved: bool
+    eligible: bool | None = None          # null until the profile is complete
+    match_percentage: float | None = None  # only for eligible internships
+    low_match: bool | None = None
+    missing_mandatory: list[str] = []     # why an internship is not eligible (skills)
+    education_ok: bool | None = None
+
+
+class BrowseResponse(BaseModel):
+    total: int
+    limit: int
+    offset: int
+    profile_complete: bool
+    items: list[BrowseItem]

@@ -1,4 +1,6 @@
+"use client";
 import Link from "next/link";
+import { useT } from "../../i18n/useT";
 
 const steps = [
   { label: "Education", href: "/profile" },
@@ -7,6 +9,7 @@ const steps = [
 ];
 
 export default function Stepper({ current }: { current: 1 | 2 | 3 }) {
+  const tr = useT();
   return (
     <div className="progress-section">
       {steps.map((s, i) => {
@@ -15,7 +18,7 @@ export default function Stepper({ current }: { current: 1 | 2 | 3 }) {
         const inner = (
           <>
             <div className="step-circle">{n < current ? "✓" : n}</div>
-            <span>{s.label}</span>
+            <span>{tr(s.label)}</span>
           </>
         );
         return (

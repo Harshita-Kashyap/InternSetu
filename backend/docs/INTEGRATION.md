@@ -6,7 +6,7 @@ Run everything from the `backend/` folder with the virtual environment active.
 
 **A. One-time setup** (skip what you already did)
 1. Postgres running, database `internsetu` created, `.env` filled (`DATABASE_URL`, `SECRET_KEY`).
-2. `pip install -r requirements-dev.txt`
+2. `pip install -r requirements.txt`
 3. `alembic upgrade head`
 4. `python -m app.scripts.load_datasets --all`
 5. Optional admin: `python -m app.scripts.create_admin --name "You" --email you@example.com`

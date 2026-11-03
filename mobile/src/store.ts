@@ -4,10 +4,10 @@ import { loadTax, resolveId } from "./taxo";
 
 export type Profile = {
   education?: string; degree?: string; field?: string; college?: string;
-  skills?: string[]; interests?: string[]; location?: string; relocate?: string; workMode?: string; domains?: string[];
+  skills?: string[]; interests?: string[]; location?: string; preferredLocations?: string[]; relocate?: "nearby" | "selected" | "anywhere"; domains?: string[];
 };
 
-// Local cache only for fields the backend has no column for (college, workMode) and as an offline fallback.
+// Local cache only for fields the backend has no column for (college) and as an offline fallback.
 const PROFILE_KEY = "internsetu_profile";
 
 export async function loadProfile(): Promise<Profile> {
@@ -35,12 +35,14 @@ export async function loadProfileRemote(): Promise<Profile> {
       api.getProfile(), loadTax("education_level"), loadTax("degree"), loadTax("field_of_study"),
       loadTax("skill"), loadTax("interest"), loadTax("sector"), loadTax("city"),
     ]);
+    const others = p.preferred_location_ids.filter((id) => id !== p.home_location_id);
     return {
       ...local,
       education: nameOf(edu, p.education_level_id) ?? local.education, degree: nameOf(deg, p.degree_id) ?? local.degree, field: nameOf(fos, p.field_of_study_id) ?? local.field,
       skills: namesOf(sk, p.skill_ids), interests: namesOf(int, p.interest_ids), domains: namesOf(sec, p.preferred_sector_ids),
       location: nameOf(city, p.home_location_id) ?? local.location,
-      relocate: p.home_location_id ? (p.willing_to_relocate ? "Yes" : "No") : local.relocate,
+      preferredLocations: namesOf(city, others),
+      relocate: !p.home_location_id ? undefined : p.willing_to_relocate ? "anywhere" : others.length ? "selected" : "nearby",
     };
   } catch { return local; }
 }
@@ -54,8 +56,18 @@ export async function saveProfileRemote(patch: Partial<Profile>) {
   if (patch.skills) u.skill_ids = idsOf(await loadTax("skill"), patch.skills);
   if (patch.interests) u.interest_ids = idsOf(await loadTax("interest"), patch.interests);
   if (patch.domains) u.preferred_sector_ids = idsOf(await loadTax("sector"), patch.domains);
-  if (patch.location) { const [id] = idsOf(await loadTax("city"), [patch.location]); if (id) { u.home_location_id = id; u.preferred_location_ids = [id]; } }
-  if (patch.relocate) u.willing_to_relocate = patch.relocate === "Yes";
+  if (patch.location) {
+    const cities = await loadTax("city");
+    const [home] = idsOf(cities, [patch.location]);
+    if (home) {
+      u.home_location_id = home;
+      const mode = patch.relocate ?? "nearby";
+      const extra = mode === "nearby" ? [] : idsOf(cities, patch.preferredLocations ?? []).filter((id) => id !== home);
+      u.preferred_location_ids = [home, ...extra];   // matching: preferred cities
+      u.willing_to_relocate = mode === "anywhere";    // matching: open to relocate
+      u.willing_to_travel = mode !== "nearby";
+    }
+  }
   if (Object.keys(u).length) await api.updateProfile(u);
   await saveProfile(patch);
 }

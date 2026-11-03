@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "../../../i18n/useT";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AuthShell from "../../components/AuthShell";
@@ -9,6 +10,7 @@ import { useToast } from "../../components/Toast";
 import { api, ApiError } from "../../lib/api";
 
 export default function ConsentPage() {
+  const tr = useT();
   const router = useRouter();
   const { toast, show } = useToast();
   const [checked, setChecked] = useState(false);
@@ -22,7 +24,7 @@ export default function ConsentPage() {
       router.push("/profile");
     } catch (err) {
       setLoading(false);
-      show(err instanceof ApiError ? err.message : "Unable to save your consent. Please try again.");
+      show(err instanceof ApiError ? err.message : tr("Unable to save your consent. Please try again."));
     }
   };
 
@@ -36,8 +38,8 @@ export default function ConsentPage() {
             alt="InternSetu"
             className="login-logo"
           />
-          <p className="welcome-text">Your privacy matters</p>
-          <h1>Privacy and consent</h1>
+          <p className="welcome-text">{tr("Your privacy matters")}</p>
+          <h1>{tr("Privacy and consent")}</h1>
           <p className="subtitle">
             Before setting up your internship profile, please review
             how your information will be used.
@@ -46,7 +48,7 @@ export default function ConsentPage() {
 
         <div className="login-form">
           <div className="form-field">
-            <h3>How your information is used</h3>
+            <h3>{tr("How your information is used")}</h3>
             <p>
               InternSetu uses the profile information you provide,
               such as education, skills, interests and location
@@ -55,7 +57,7 @@ export default function ConsentPage() {
             <p>
               Please review the{" "}
               <Link href="/privacy" className="register-button">
-                Privacy Policy
+                {tr("Privacy Policy")}
               </Link>{" "}
               before continuing.
             </p>
@@ -87,7 +89,7 @@ export default function ConsentPage() {
             disabled={!checked || loading}
             onClick={continueToProfile}
           >
-            {loading ? "Please wait..." : "Continue"}
+            {loading ? tr("Please wait...") : "Continue"}
           </button>
         </div>
 

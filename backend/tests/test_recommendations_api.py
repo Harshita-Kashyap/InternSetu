@@ -126,3 +126,27 @@ def test_deleting_account_removes_profile_and_saved(loaded_client):
         # only the 350 synthetic profiles' links remain
         from app.models import CandidateProfile
         assert db.scalar(select(func.count()).select_from(CandidateProfile).where(CandidateProfile.is_synthetic.is_(False))) == 0
+
+
+def test_browse_lists_catalogue_with_eligibility_and_filters(loaded_client):
+    h = onboard(loaded_client, GOOD)
+    r = loaded_client.get(f"{API}/me/internships?limit=50", headers=h).json()
+    assert r["profile_complete"] and r["total"] > 50 and len(r["items"]) == 50
+    flags = [i["eligible"] for i in r["items"]]
+    assert flags == sorted(flags, reverse=True)                       # eligible first
+    bad = next(i for i in r["items"] if i["eligible"] is False)         # eligibility failure != low match
+    assert bad["match_percentage"] is None
+    suitable = loaded_client.get(f"{API}/me/internships?scope=suitable&limit=50", headers=h).json()
+    assert suitable["total"] > 0 and all(i["eligible"] and i["match_percentage"] is not None for i in suitable["items"])
+    top = suitable["items"][0]
+    hit = loaded_client.get(f"{API}/me/internships?q={top['title'][:12]}&city={top['location']}", headers=h).json()
+    assert top["internship_id"] in [i["internship_id"] for i in hit["items"]]
+
+
+def test_browse_without_profile_and_suitable_needs_profile(loaded_client):
+    h = auth_header(register(loaded_client).json()["access_token"])
+    r = loaded_client.get(f"{API}/me/internships", headers=h).json()
+    assert not r["profile_complete"] and r["items"] and r["items"][0]["eligible"] is None
+    s = loaded_client.get(f"{API}/me/internships?scope=suitable", headers=h)
+    assert s.status_code == 409 and s.json()["error"]["code"] == "profile_incomplete"
+    assert loaded_client.get(f"{API}/me/internships").status_code == 401

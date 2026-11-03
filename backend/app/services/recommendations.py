@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.core.config import settings
 from app.core.errors import ApiError
 from app.engine.engine import EngineUnavailable, RecommendationEngine
+from app.engine.eligibility.eligibility import check_eligibility
 from app.engine.explanation.explain import explain
 from app.engine.profile import InputError, normalize_profile
 from app.models import CandidateProfile, Internship, TaxonomyEntry
@@ -41,6 +42,8 @@ def get_engine(db: Session) -> RecommendationEngine:
     global _engine
     with _lock:
         if _engine is None:
+            from app.services.admin import apply_saved_weights
+            apply_saved_weights(db)  # admin-edited scoring weights (REQ: weights must total 100%)
             _engine = _build_engine(db)
         if not _engine.tax.skill_name:
             _engine = None
@@ -130,3 +133,41 @@ def quick_fit(db: Session, profile: CandidateProfile | None, external_ids: list[
             ev = explain(cand, intern, eng.tax)
             out[iid] = {"eligible": ev["eligible"], "match_percentage": ev["match_percentage"]}
     return out
+
+
+def browse(db: Session, profile: CandidateProfile | None, *, scope: str, q: str | None, sector_id: str | None,
+           location_id: str | None, limit: int, offset: int, saved_ids: set[str]) -> dict:
+    """Search the active catalogue. With a complete profile every item says eligible / not eligible
+    (hard rules) and eligible ones carry a match %. scope="suitable" keeps eligible items only."""
+    eng = get_engine(db)
+    tax = eng.tax
+    complete = profile is not None and profile.status == "complete"
+    cand = _engine_errors(lambda: normalize_profile(ea.profile_dict(profile), tax)) if complete else None
+    needle = (q or "").strip().lower()
+    rows = []
+    for iid in sorted(eng.internships):
+        it = eng.internships[iid]
+        if sector_id and it["sector_id"] != sector_id:
+            continue
+        if location_id and it["location"] != location_id:
+            continue
+        if needle and needle not in f"{it['title']} {it['company_name']} {it.get('description', '')}".lower():
+            continue
+        row = {"internship_id": iid, "title": it["title"], **ea.internship_facts(eng, it, settings.pmis_portal_url),
+               "saved": iid in saved_ids, "eligible": None, "match_percentage": None, "low_match": None,
+               "missing_mandatory": [], "education_ok": None}
+        if cand is not None:
+            ok, _reason, missing = check_eligibility(cand, it, tax)
+            row["eligible"] = ok
+            row["missing_mandatory"] = [tax.skill_name.get(s, s) for s in missing]
+            row["education_ok"] = "Education level below" not in _reason
+            if ok:
+                ev = explain(cand, it, tax)
+                row["match_percentage"], row["low_match"] = ev["match_percentage"], ev["low_match"]
+            elif scope == "suitable":
+                continue
+        rows.append(row)
+    if cand is not None:  # eligible first, best match first
+        rows.sort(key=lambda r: (not r["eligible"], -(r["match_percentage"] or 0), r["internship_id"]))
+    return {"total": len(rows), "limit": limit, "offset": offset, "profile_complete": complete,
+            "items": rows[offset: offset + limit]}

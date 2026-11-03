@@ -1,11 +1,12 @@
-import React, { useEffect, useRef } from "react";
+import React, { useMemo, useEffect, useRef } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import { colors, fonts } from "../theme";
+import { useTheme, Colors, fonts } from "../theme";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 export default function Ring({ value, size = 54 }: { value: number; size?: number }) {
+  const { colors } = useTheme();
   const stroke = 5;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;

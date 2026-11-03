@@ -1,3 +1,4 @@
+# Core (API + engine baseline/tfidf) and test tools. Python 3.11-3.14.
 fastapi>=0.115
 uvicorn[standard]>=0.30
 SQLAlchemy>=2.0.30
@@ -10,3 +11,6 @@ bcrypt>=4.1
 PyJWT>=2.8
 numpy>=1.26
 scikit-learn>=1.4
+# tests
+pytest>=8.0
+httpx>=0.27

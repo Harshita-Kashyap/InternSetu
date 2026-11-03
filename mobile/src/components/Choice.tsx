@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from "react";
+import React, { useMemo, useEffect, useRef } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
-import { colors, fonts } from "../theme";
+import { useTheme, Colors, fonts } from "../theme";
 
 type Props = {
   label: string;
@@ -13,6 +13,8 @@ type Props = {
 
 // One selectable tile used for skills, interests, work modes, domains & relocate.
 export default function Choice({ label, selected, onPress, mark = "+", sub, wide }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const s = useRef(new Animated.Value(1)).current;
   useEffect(() => {
     if (selected) {
@@ -38,12 +40,12 @@ export default function Choice({ label, selected, onPress, mark = "+", sub, wide
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Colors) => StyleSheet.create({
   half: { width: "48.5%", marginBottom: 10 },
-  wide: { width: "48.5%", marginBottom: 10 },
+  wide: { width: "100%", marginBottom: 10 },
   tile: {
     minHeight: 50, flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 11, paddingVertical: 10,
-    borderRadius: 10, borderWidth: 1, borderColor: colors.border, backgroundColor: "#fff",
+    borderRadius: 10, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.white,
   },
   on: { backgroundColor: colors.tealLight, borderColor: colors.teal },
   dot: { width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: colors.tealBorder, backgroundColor: colors.cream, alignItems: "center", justifyContent: "center" },

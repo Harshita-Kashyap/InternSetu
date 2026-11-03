@@ -1,105 +1,93 @@
 import React, { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useI18n } from "../i18n";
+import { Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../types";
-import SetupLayout, { setupStyles as s } from "./SetupLayout";
+import SetupLayout, { useSetupStyles } from "./SetupLayout";
 import Choice from "../components/Choice";
 import TaxPicker from "../components/TaxPicker";
 import Button from "../components/Button";
 import { useToast } from "../components/Toast";
-import { workModes } from "../data";
-import { loadProfileRemote, saveProfileRemote } from "../store";
+import { loadProfileRemote, saveProfileRemote, Profile } from "../store";
 import { useTax } from "../taxo";
 import { api, ApiError } from "../api";
-import { colors, fonts } from "../theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Preferences">;
+type Mode = NonNullable<Profile["relocate"]>;
 
 export default function PreferencesScreen({ navigation }: Props) {
+  const s = useSetupStyles();
+  const { t } = useI18n();
   const toast = useToast();
-  const [location, setLocation] = useState("");
-  const [saving, setSaving] = useState(false);
   const city = useTax("city");
   const sec = useTax("sector");
-  const [relocate, setRelocate] = useState("");
-  const [workMode, setWorkMode] = useState("");
-  const [selDomains, setSelDomains] = useState<string[]>([]);
+  const [home, setHome] = useState("");
+  const [mode, setMode] = useState<Mode | "">("");
+  const [extra, setExtra] = useState<string[]>([]);
+  const [domains, setDomains] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadProfileRemote().then((p) => {
-      if (p.location) setLocation(p.location);
-      if (p.relocate) setRelocate(p.relocate);
-      if (p.workMode) setWorkMode(p.workMode);
-      if (p.domains) setSelDomains(p.domains);
+      if (p.location) setHome(p.location);
+      if (p.relocate) setMode(p.relocate);
+      if (p.preferredLocations) setExtra(p.preferredLocations);
+      if (p.domains) setDomains(p.domains);
     });
   }, []);
 
   const finish = async () => {
-    if (!location) return toast("Please choose your home city.");
-    if (!relocate) return toast("Please tell us whether you are willing to relocate.");
-    if (!workMode) return toast("Please select your preferred work mode.");
-    if (!selDomains.length) return toast("Please select at least one preferred domain.");
+    if (!home) return toast(t("Please select the city where you live."));
+    if (!mode) return toast(t("Please choose how far you are willing to go."));
+    if (mode === "selected" && !extra.length) return toast(t("Please pick at least one other city."));
+    if (!domains.length) return toast(t("Please select at least one preferred domain."));
     setSaving(true);
     try {
-      await saveProfileRemote({ location, relocate, workMode, domains: selDomains });
+      await saveProfileRemote({ location: home, relocate: mode, preferredLocations: extra, domains });
       const p = await api.confirmProfile();
-      if (p.status !== "complete") { setSaving(false); return toast("Please complete your profile first."); }
+      if (p.status !== "complete") { setSaving(false); return toast(t("Please complete your profile first.")); }
       navigation.reset({ index: 0, routes: [{ name: "Recommendations" }] });
     } catch (e) {
       if (e instanceof ApiError && e.code === "consent_required") navigation.reset({ index: 0, routes: [{ name: "Consent" }] });
-      else toast(e instanceof Error ? e.message : "Could not save your preferences.");
+      else toast(e instanceof Error ? e.message : t("Could not save your preferences."));
       setSaving(false);
     }
   };
 
   return (
-    <SetupLayout step={3} eyebrow="STEP 3 OF 3" title="Where would you like to work?" subtitle="Tell us about your location and work preferences so we can find opportunities that fit your situation.">
-      <Text style={s.h2}>Home city</Text>
-      <TaxPicker single options={city.names} loading={city.loading} selected={location ? [location] : []} onChange={(v) => setLocation(v[0] || "")} placeholder="Search your city" />
+    <SetupLayout step={3} eyebrow={t("STEP 3 OF 3")} title={t("Where would you like to work?")} subtitle={t("Location is a preference, not a rule: internships elsewhere can still match, they just score a little lower.")}>
+      <Text style={s.h2}>{t("Where do you live?")}</Text>
+      <TaxPicker single options={city.names} loading={city.loading} selected={home ? [home] : []} onChange={(v) => setHome(v[0] || "")} placeholder={t("Search your city")} />
 
       <View style={s.section}>
-        <Text style={s.h2}>Are you willing to relocate?</Text>
-        <Text style={s.p}>This helps us include opportunities outside your preferred location.</Text>
+        <Text style={s.h2}>{t("How far are you willing to go?")}</Text>
+        <Text style={s.p}>{t("This decides how much location affects your matches.")}</Text>
         <View style={s.grid}>
-          <Choice wide label="Yes" sub="I'm open to relocating" mark="" selected={relocate === "Yes"} onPress={() => setRelocate("Yes")} />
-          <Choice wide label="No" sub="I prefer to stay nearby" mark="" selected={relocate === "No"} onPress={() => setRelocate("No")} />
+          <Choice wide mark="" selected={mode === "nearby"} onPress={() => setMode("nearby")} label={t("Nearby only")} sub={t("Opportunities in or close to my city")} />
+          <Choice wide mark="" selected={mode === "selected"} onPress={() => setMode("selected")} label={t("Selected cities")} sub={t("My city plus cities I choose")} />
+          <Choice wide mark="" selected={mode === "anywhere"} onPress={() => setMode("anywhere")} label={t("Anywhere in India")} sub={t("I am willing to relocate")} />
         </View>
       </View>
 
-      <View style={s.section}>
-        <Text style={s.h2}>Preferred work mode</Text>
-        <Text style={s.p}>Choose the type of workplace you prefer.</Text>
-        <View style={styles.modes}>
-          {workModes.map((m) => (
-            <Pressable key={m} onPress={() => setWorkMode(m)} style={[styles.mode, workMode === m && styles.modeOn]}>
-              <Text style={[styles.modeTxt, workMode === m && { color: colors.tealDark }]}>{workMode === m ? "✓ " : "○ "}{m}</Text>
-            </Pressable>
-          ))}
+      {mode === "selected" ? (
+        <View style={s.section}>
+          <Text style={s.h2}>{t("Other cities you would consider")}</Text>
+          <Text style={s.count}>{extra.length} {t("selected")}</Text>
+          <TaxPicker options={city.names.filter((c) => c !== home)} loading={city.loading} selected={extra} onChange={setExtra} placeholder={t("Search your city")} />
         </View>
-      </View>
+      ) : null}
 
       <View style={s.section}>
-        <Text style={s.h2}>Preferred domains</Text>
-        <Text style={s.p}>Select the areas you would like to explore.</Text>
-        <TaxPicker options={sec.names} loading={sec.loading} selected={selDomains} onChange={setSelDomains} placeholder="Search sectors" />
+        <Text style={s.h2}>{t("Preferred domains")}</Text>
+        <Text style={s.p}>{t("Select the areas you would like to explore.")}</Text>
+        <Text style={s.count}>{domains.length} {t("selected")}</Text>
+        <TaxPicker options={sec.names} loading={sec.loading} selected={domains} onChange={setDomains} placeholder={t("Search sectors")} />
       </View>
 
       <View style={s.actions}>
-        <Button title="Find my internships" arrow onPress={finish} loading={saving} />
-        <Text style={s.back} onPress={() => navigation.navigate("Skills")}>← Back</Text>
+        <Button title={t("Find my internships")} arrow onPress={finish} loading={saving} />
+        <Text style={s.back} onPress={() => navigation.navigate("Skills")}>{t("← Back")}</Text>
       </View>
     </SetupLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 14 },
-  pill: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: 10, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.creamLight },
-  pillOn: { backgroundColor: colors.teal, borderColor: colors.teal },
-  pillTxt: { fontSize: 13.5, fontFamily: fonts.semibold, color: colors.text },
-  hint: { marginTop: 10, fontSize: 12, color: colors.muted, fontFamily: fonts.body, lineHeight: 18 },
-  modes: { flexDirection: "row", gap: 8, marginTop: 14 },
-  mode: { flex: 1, height: 48, borderRadius: 10, borderWidth: 1, borderColor: colors.border, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" },
-  modeOn: { backgroundColor: colors.tealLight, borderColor: colors.teal },
-  modeTxt: { fontSize: 13.5, fontFamily: fonts.semibold, color: colors.text },
-});

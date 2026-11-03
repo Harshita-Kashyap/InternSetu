@@ -19,7 +19,11 @@ export type RecommendationItem = {
   why_recommended: string[]; considerations: string[]; apply_url: string; is_demo_data: boolean;
   skill_gap: { missing_mandatory: string[]; missing_preferred: string[] };
 };
-export type RecommendationsResponse = { count: number; eligible_count: number; message: string | null; demo_notice: string | null; disclaimer: string; recommendations: RecommendationItem[] };
+export type RecommendationsResponse = { skill_gap_summary?: { skill_id: string; skill: string; count: number }[]; nearest?: { internship_id: string; title: string; company_name: string; location_name: string; missing_mandatory: string[]; reason: string }[]; count: number; eligible_count: number; message: string | null; demo_notice: string | null; disclaimer: string; recommendations: RecommendationItem[] };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AdminJson = Record<string, any>;
+export type AdminTaxEntry = { id: string; type: string; name: string; is_active: boolean; synonyms: string[] };
 
 export class ApiError extends Error {
   constructor(public status: number, public code: string, message: string, public fields: { field: string; message: string }[] = []) { super(message); }
@@ -56,6 +60,22 @@ export const api = {
     const r = await req<TokenResponse>("/auth/login", { method: "POST", ...json({ identifier, password }) }, false); setToken(r.access_token); return r;
   },
   logout: () => clearToken(),
+  forgotPassword: (identifier: string) => req<{ message: string }>("/auth/forgot-password", { method: "POST", ...json({ identifier }) }, false),
+  // ---- admin (role = admin) ----
+  adminPing: () => req<{ status: string; admin: string }>("/admin/ping"),
+  adminStats: () => req<AdminJson>("/admin/stats"),
+  adminWeights: () => req<{ weights: Record<string, number>; defaults: Record<string, number> }>("/admin/weights"),
+  adminSetWeights: (w: Record<string, number>) => req<{ weights: Record<string, number> }>("/admin/weights", { method: "PUT", ...json(w) }),
+  adminResetWeights: () => req<{ weights: Record<string, number> }>("/admin/weights/reset", { method: "POST" }),
+  adminTaxonomy: (type: string, q = "") => req<AdminTaxEntry[]>(`/admin/taxonomy/${type}?limit=100&q=${encodeURIComponent(q)}`),
+  adminCreateTax: (type: string, name: string, synonyms: string[]) => req<AdminTaxEntry>(`/admin/taxonomy/${type}`, { method: "POST", ...json({ name, synonyms }) }),
+  adminUpdateTax: (id: string, patch: { is_active?: boolean; add_synonyms?: string[]; remove_synonyms?: string[] }) => req<AdminTaxEntry>(`/admin/taxonomy/entries/${id}`, { method: "PATCH", ...json(patch) }),
+  adminFlagged: () => req<{ id: number; entry_type: string; raw_text: string; suggested_entry_id: string | null }[]>("/admin/flagged"),
+  adminResolveFlag: (id: number, entry_id?: string) => req<AdminJson>(`/admin/flagged/${id}/resolve`, { method: "POST", ...json({ entry_id: entry_id ?? null }) }),
+  adminInternships: (q = "") => req<{ total: number; items: { internship_id: string; title: string; company_name: string; is_active: boolean; is_synthetic: boolean }[] }>(`/admin/internships?limit=20&q=${encodeURIComponent(q)}`),
+  adminSetActive: (id: string, is_active: boolean) => req<AdminJson>(`/admin/internships/${id}`, { method: "PATCH", ...json({ is_active }) }),
+  adminImportCsv: (csv_text: string, dry_run: boolean, skip_invalid: boolean, is_synthetic: boolean) => req<AdminJson>("/admin/internships/import", { method: "POST", ...json({ csv_text, dry_run, skip_invalid, is_synthetic }) }),
+  adminEvaluation: (n: number) => req<AdminJson>(`/admin/evaluation?n=${n}`),
   me: () => req<User>("/auth/me"),
   consent: () => req<{ has_active_consent: boolean; current_version: string }>("/me/consent"),
   giveConsent: () => req<{ has_active_consent: boolean }>("/me/consent", { method: "POST" }),
@@ -70,9 +90,10 @@ export const api = {
   getProfile: () => req<ApiProfile>("/me/profile"),
   updateProfile: (patch: ProfileUpdate) => req<ApiProfile>("/me/profile", { method: "PATCH", ...json(patch) }),
   confirmProfile: () => req<ApiProfile>("/me/profile/confirm", { method: "POST" }),
-  recommendations: (k?: number) => req<RecommendationsResponse>(`/me/recommendations${k ? `?k=${k}` : ""}`),
+  recommendations: (k?: number, lang?: string) => req<RecommendationsResponse>(`/me/recommendations?${new URLSearchParams({ ...(k ? { k: String(k) } : {}), ...(lang ? { lang } : {}) })}`),
   internship: (id: string) => req<unknown>(`/me/recommendations/${id}`),
   saved: () => req<unknown[]>("/me/saved"),
+  savedFull: () => req<{ internship_id: string; title: string; company_name: string; location_name: string; duration: string | null; stipend_inr_per_month: number | null; is_demo_data: boolean; match_percentage: number | null }[]>("/me/saved"),
   save: (id: string) => req<unknown>(`/me/saved/${id}`, { method: "PUT" }),
   unsave: (id: string) => req<unknown>(`/me/saved/${id}`, { method: "DELETE" }),
 };

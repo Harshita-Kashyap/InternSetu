@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useT } from "../../../i18n/useT";
 import { useRouter } from "next/navigation";
 import Header from "../../components/Header";
 import { loadProfileRemote, type Profile } from "../../lib/store";
@@ -8,6 +9,7 @@ import { api, ApiError } from "../../lib/api";
 import { useToast } from "../../components/Toast";
 
 export default function ProfileSummaryPage() {
+  const tr = useT();
   const router = useRouter();
   const { toast, show } = useToast();
   const [profile, setProfile] = useState<Profile>({});
@@ -32,7 +34,6 @@ export default function ProfileSummaryPage() {
     skills.length === 0 && "at least one skill",
     interests.length === 0 && "at least one interest",
     !profile.relocate && "relocation preference",
-    !profile.workMode && "work mode",
     domains.length === 0 && "preferred domain",
   ].filter(Boolean) as string[];
 
@@ -40,14 +41,14 @@ export default function ProfileSummaryPage() {
 
   const getRecommendations = async () => {
     if (missingItems.length > 0) {
-      show("Please complete your missing profile details before continuing.");
+      show(tr("Please complete your missing profile details before continuing."));
       return;
     }
     try {
       await api.confirmProfile();
       router.push("/recommendations");
     } catch (e) {
-      show(e instanceof ApiError ? e.message : "Could not confirm your profile.");
+      show(e instanceof ApiError ? e.message : tr("Could not confirm your profile."));
     }
   };
 
@@ -60,8 +61,8 @@ export default function ProfileSummaryPage() {
       <section className="profile-container">
         <div className="profile-card card-rise">
           <div className="profile-intro">
-            <p className="profile-eyebrow">PROFILE REVIEW</p>
-            <h1>Review your profile</h1>
+            <p className="profile-eyebrow">{tr("PROFILE REVIEW")}</p>
+            <h1>{tr("Review your profile")}</h1>
             <p>
               Check your details before we find internships that match your
               skills, education and preferences.
@@ -80,7 +81,7 @@ export default function ProfileSummaryPage() {
                 color: "#714b0c",
               }}
             >
-              <strong>Your profile needs a few more details.</strong>
+              <strong>{tr("Your profile needs a few more details.")}</strong>
               <p style={{ marginBottom: 0 }}>
                 Please complete: {missingItems.join(", ")}.
               </p>
@@ -96,11 +97,11 @@ export default function ProfileSummaryPage() {
                 borderRadius: "14px",
               }}
             >
-              <h2>Education</h2>
-              <p><strong>Education level:</strong> {value(profile.education)}</p>
-              <p><strong>Degree / qualification:</strong> {value(profile.degree)}</p>
-              <p><strong>Field of study:</strong> {value(profile.field)}</p>
-              <p><strong>College / institution:</strong> {value(profile.college)}</p>
+              <h2>{tr("Education")}</h2>
+              <p><strong>{tr("Education level:")}</strong> {value(profile.education)}</p>
+              <p><strong>{tr("Degree / qualification:")}</strong> {value(profile.degree)}</p>
+              <p><strong>{tr("Field of study:")}</strong> {value(profile.field)}</p>
+              <p><strong>{tr("College / institution:")}</strong> {value(profile.college)}</p>
               <button
                 type="button"
                 className="register-button"
@@ -118,15 +119,15 @@ export default function ProfileSummaryPage() {
                 borderRadius: "14px",
               }}
             >
-              <h2>Skills & Interests</h2>
-              <p><strong>Skills:</strong> {skills.join(", ") || "Not provided"}</p>
-              <p><strong>Interests:</strong> {interests.join(", ") || "Not provided"}</p>
+              <h2>{tr("Skills & Interests")}</h2>
+              <p><strong>{tr("Skills:")}</strong> {skills.join(", ") || "Not provided"}</p>
+              <p><strong>{tr("Interests:")}</strong> {interests.join(", ") || "Not provided"}</p>
               <button
                 type="button"
                 className="register-button"
                 onClick={() => editSection("/profile/skills")}
               >
-                Edit Skills & Interests
+                {tr("Edit Skills & Interests")}
               </button>
             </section>
 
@@ -138,17 +139,16 @@ export default function ProfileSummaryPage() {
                 borderRadius: "14px",
               }}
             >
-              <h2>Internship Preferences</h2>
-              <p><strong>Preferred location:</strong> {value(profile.location)}</p>
-              <p><strong>Willing to relocate:</strong> {value(profile.relocate)}</p>
-              <p><strong>Work mode:</strong> {value(profile.workMode)}</p>
-              <p><strong>Preferred domains:</strong> {domains.join(", ") || "Not provided"}</p>
+              <h2>{tr("Internship Preferences")}</h2>
+              <p><strong>{tr("Preferred location:")}</strong> {value(profile.location)}</p>
+              <p><strong>{tr("Location preference:")}</strong> {profile.relocate === "nearby" ? tr("Nearby only") : profile.relocate === "selected" ? `${tr("Selected cities")}: ${(profile.preferredLocations ?? []).join(", ")}` : profile.relocate === "anywhere" ? tr("Open to relocate anywhere") : "Not provided"}</p>
+              <p><strong>{tr("Preferred domains:")}</strong> {domains.join(", ") || "Not provided"}</p>
               <button
                 type="button"
                 className="register-button"
                 onClick={() => editSection("/profile/preferences")}
               >
-                Edit Preferences
+                {tr("Edit Preferences")}
               </button>
             </section>
 
@@ -157,7 +157,7 @@ export default function ProfileSummaryPage() {
               className="primary-button"
               onClick={getRecommendations}
             >
-              Get Recommendations
+              {tr("Get Recommendations")}
             </button>
 
             <button
@@ -166,7 +166,7 @@ export default function ProfileSummaryPage() {
               onClick={() => router.push("/profile/preferences")}
               style={{ marginTop: "10px" }}
             >
-              Back to Preferences
+              {tr("Back to Preferences")}
             </button>
           </div>
         </div>

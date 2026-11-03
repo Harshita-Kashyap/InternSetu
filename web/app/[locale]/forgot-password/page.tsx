@@ -1,18 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "../../../i18n/useT";
 import Link from "next/link";
 import AuthShell from "../../components/AuthShell";
+import { api } from "../../lib/api";
 import { useToast } from "../../components/Toast";
 
 export default function ForgotPasswordPage() {
+  const tr = useT();
   const { toast, show } = useToast();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!/^\S+@\S+\.\S+$/.test(email)) return show("Please enter a valid email.");
+    if (!/^\S+@\S+\.\S+$/.test(email)) return show(tr("Please enter a valid email."));
+    await api.forgotPassword(email.trim()).catch(() => {});
     setSent(true);
   };
 
@@ -22,9 +26,9 @@ export default function ForgotPasswordPage() {
         <div className="login-header">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="InternSetu" className="login-logo" />
-          <h1>Reset your password</h1>
+          <h1>{tr("Reset your password")}</h1>
           <p className="subtitle">
-            Enter your email and we&apos;ll send you a reset link.
+            {tr("Enter your email and we'll send you a reset link.")}
           </p>
         </div>
 
@@ -38,15 +42,15 @@ export default function ForgotPasswordPage() {
         ) : (
           <form className="login-form" onSubmit={submit}>
             <div className="form-field">
-              <label htmlFor="fe">Email</label>
+              <label htmlFor="fe">{tr("Email")}</label>
               <input id="fe" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
             </div>
-            <button type="submit" className="login-button">Send reset link</button>
+            <button type="submit" className="login-button">{tr("Send reset link")}</button>
           </form>
         )}
 
         <div className="register-section">
-          <Link href="/" className="register-button">← Back to login</Link>
+          <Link href="/" className="register-button">{tr("← Back to login")}</Link>
         </div>
       </section>
       {toast}

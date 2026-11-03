@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useT } from "../../../i18n/useT";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Header from "../../components/Header";
@@ -11,6 +12,7 @@ import { useTax } from "../../lib/taxo";
 
 
 export default function ProfilePage() {
+  const tr = useT();
   const t = useTranslations("Profile");
   const levels = useTax("education_level").names;
   const degrees = useTax("degree").names;
@@ -38,14 +40,14 @@ export default function ProfilePage() {
 
   const next = async () => {
     if (!degree.trim() || !field.trim() || !college.trim()) {
-      show("Please fill in your degree, field of study and college.");
+      show(tr("Please fill in your degree, field of study and college."));
       return;
     }
     try {
       await saveProfileRemote({ education, degree, field, college });
       router.push("/profile/skills");
     } catch (e) {
-      show(e instanceof Error ? e.message : "Could not save. Please try again.");
+      show(e instanceof Error ? e.message : tr("Could not save. Please try again."));
     }
   };
 
@@ -90,14 +92,14 @@ export default function ProfilePage() {
   <datalist id="degree-list">{degrees.map((d) => <option key={d} value={d} />)}</datalist>
 </div>
             <div className="profile-field">
-              <label htmlFor="field">Field of study</label>
-              <input id="field" type="text" value={field} onChange={(e) => setField(e.target.value)} placeholder="e.g. Computer Science" list="field-list" />
+              <label htmlFor="field">{tr("Field of study")}</label>
+              <input id="field" type="text" value={field} onChange={(e) => setField(e.target.value)} placeholder={tr("e.g. Computer Science")} list="field-list" />
               <datalist id="field-list">{fields.map((d) => <option key={d} value={d} />)}</datalist>
             </div>
 
             <div className="profile-field">
-              <label htmlFor="college">College / Institution</label>
-              <input id="college" type="text" value={college} onChange={(e) => setCollege(e.target.value)} placeholder="Enter your college or institution" />
+              <label htmlFor="college">{tr("College / Institution")}</label>
+              <input id="college" type="text" value={college} onChange={(e) => setCollege(e.target.value)} placeholder={tr("Enter your college or institution")} />
             </div>
 
             <button type="button" className="profile-continue" onClick={next}>
