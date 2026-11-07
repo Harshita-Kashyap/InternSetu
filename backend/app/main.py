@@ -46,6 +46,7 @@ app.add_middleware(
     allow_origins=settings.cors_origin_list,
     allow_methods=["*"],
     allow_headers=["*"],
+    max_age=86400,
 )
 
 register_exception_handlers(app)

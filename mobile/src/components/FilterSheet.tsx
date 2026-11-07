@@ -5,10 +5,10 @@ import TaxPicker from "./TaxPicker";
 import Button from "./Button";
 import { useTheme, Colors, fonts } from "../theme";
 
-type Props = { visible: boolean; title: string; options: string[]; loading?: boolean; value: string; onChange: (v: string) => void; onClose: () => void };
+type Props = { visible: boolean; title: string; options: string[]; single?: boolean; loading?: boolean; value: string[]; onChange: (v: string[]) => void; onClose: () => void };
 
-/** Bottom sheet with a searchable single-choice list (used for the sector and city filters). */
-export default function FilterSheet({ visible, title, options, loading, value, onChange, onClose }: Props) {
+/** Bottom sheet with a searchable list. Multi-select by default; pass `single` to keep one value (used for the sector and city filters). */
+export default function FilterSheet({ visible, title, options, single, loading, value, onChange, onClose }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useI18n();
@@ -20,10 +20,10 @@ export default function FilterSheet({ visible, title, options, loading, value, o
           <View style={styles.grab} />
           <Text style={styles.title}>{title}</Text>
           <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: 420 }}>
-            <TaxPicker single options={options} loading={loading} selected={value ? [value] : []} onChange={(v) => onChange(v[0] || "")} placeholder={t("Search") + "…"} limit={40} />
+            <TaxPicker single={single} options={options} loading={loading} selected={value} onChange={onChange} placeholder={t("Search") + "…"} limit={40} />
           </ScrollView>
           <View style={styles.actions}>
-            <View style={{ flex: 1 }}><Button variant="outline" title={t("Clear")} onPress={() => { onChange(""); onClose(); }} /></View>
+            <View style={{ flex: 1 }}><Button variant="outline" title={t("Clear")} onPress={() => { onChange([]); onClose(); }} /></View>
             <View style={{ flex: 1 }}><Button title={t("Done")} onPress={onClose} /></View>
           </View>
         </View>

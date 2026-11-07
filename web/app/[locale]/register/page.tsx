@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link, useRouter } from "../../../i18n/navigation";
 import { useT } from "../../../i18n/useT";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import AuthShell from "../../components/AuthShell";
 import { useToast } from "../../components/Toast";
 import { api, ApiError } from "../../lib/api";
@@ -18,6 +17,19 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [agree, setAgree] = useState(false);
 
+  const DRAFT = "internsetu_register_draft";
+  useEffect(() => {
+    try {
+      const d = JSON.parse(sessionStorage.getItem(DRAFT) || "{}");
+      if (d.name) setName(d.name);
+      if (d.email) setEmail(d.email);
+      if (d.agree) setAgree(true);
+    } catch {}
+  }, []);
+  useEffect(() => {
+    try { sessionStorage.setItem(DRAFT, JSON.stringify({ name, email, agree })); } catch {}
+  }, [name, email, agree]);
+
   const strength = Math.min(
     4,
     (password.length >= 8 ? 1 : 0) +
@@ -25,7 +37,7 @@ export default function RegisterPage() {
       (/[0-9]/.test(password) ? 1 : 0) +
       (/[^A-Za-z0-9]/.test(password) ? 1 : 0)
   );
-  const labels = ["Too short", "Weak", "Fair", "Good", "Strong"];
+  const labels = [tr("Too short"), tr("Weak"), tr("Fair"), tr("Good"), tr("Strong")];
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +48,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await api.register({ full_name: name.trim(), email: email.trim(), password, consent: true });
+      try { sessionStorage.removeItem(DRAFT); } catch {}
       router.push("/profile");
     } catch (err) {
       if (err instanceof ApiError) show(err.fieldMessage("password") || err.fieldMessage("email") || err.fieldMessage("full_name") || err.message);

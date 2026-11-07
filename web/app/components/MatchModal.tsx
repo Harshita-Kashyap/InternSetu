@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { Link } from "../../i18n/navigation";
 import { useLocale } from "next-intl";
 import Ring from "./Ring";
 import { api, ApiError, InternshipDetail } from "../lib/api";

@@ -1,15 +1,23 @@
 
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "../../../i18n/navigation";
 import { useT } from "../../../i18n/useT";
 import AuthShell from "../../components/AuthShell";
 
 export default function PrivacyPage() {
   const tr = useT();
+  const router = useRouter();
+  // Return to wherever the user came from (register, consent...); safe fallback for direct visits.
+  const goBack = () => {
+    let internal = false;
+    try { internal = !!document.referrer && new URL(document.referrer).origin === window.location.origin; } catch {}
+    if (internal && window.history.length > 1) router.back();
+    else router.push("/register");
+  };
   return (
-    <AuthShell>
-      <section className="login-card card-rise">
+    <AuthShell visual={false}>
+      <section className="login-card card-rise legal-card">
         <div className="login-header">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -27,46 +35,36 @@ export default function PrivacyPage() {
         <div className="login-form">
           <h3>{tr("1. Information you provide")}</h3>
           <p>
-            You may enter your name, email, education, skills,
-            interests and internship preferences.
+            {tr("You may enter your name, email, education, skills, interests and internship preferences.")}
           </p>
 
           <h3>{tr("2. How information is used")}</h3>
           <p>
-            This demo uses profile information to support internship
-            recommendations and display relevant opportunities.
+            {tr("This demo uses profile information to support internship recommendations and display relevant opportunities.")}
           </p>
 
           <h3>{tr("3. Local storage")}</h3>
           <p>
-            The current demo may store session, profile and consent
-            information in your browser's local storage.
-            This information may remain on the device until cleared.
+            {tr("The current demo may store session, profile and consent information in your browser's local storage. This information may remain on the device until cleared.")}
           </p>
 
           <h3>{tr("4. Limitations")}</h3>
           <p>
-            Do not enter passwords or other sensitive information
-            that is not required for this demo. Recommendations
-            should be verified against official internship requirements.
+            {tr("Do not enter passwords or other sensitive information that is not required for this demo. Recommendations should be verified against official internship requirements.")}
           </p>
 
           <h3>{tr("5. Your choices")}</h3>
           <p>
-            You can stop using the demo and clear its browser-stored
-            data. Consent withdrawal controls will be added to account
-            settings as the project develops.
+            {tr("You can stop using the demo and clear its browser-stored data. Consent withdrawal controls will be added to account settings as the project develops.")}
           </p>
 
           <p>
-            <strong>{tr("Project note:")}</strong> This is a development
-            draft. Confirm the actual data collection, retention,
-            security and deletion practices before publishing it.
+            <strong>{tr("Project note:")}</strong> {tr("This is a development draft. Confirm the actual data collection, retention, security and deletion practices before publishing it.")}
           </p>
 
-          <Link href="/consent" className="register-button">
-            {tr("Back to consent")}
-          </Link>
+          <button type="button" className="login-button" onClick={goBack}>
+            ← {tr("Back")}
+          </button>
         </div>
       </section>
     </AuthShell>

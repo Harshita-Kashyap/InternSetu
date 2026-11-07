@@ -39,6 +39,10 @@ def get_recommendations(
     return localize(res, lang or user.preferred_language)
 
 
+def _ids(csv: str | None) -> set[str]:
+    return {x.strip() for x in (csv or "").split(",") if x.strip()}
+
+
 @router.get("/internships", response_model=BrowseResponse)
 def browse_internships(
     user: CurrentUser, db: DbSession,
@@ -46,6 +50,8 @@ def browse_internships(
     q: Annotated[str | None, Query(max_length=80)] = None,
     sector: Annotated[str | None, Query(max_length=30, description="sector id")] = None,
     city: Annotated[str | None, Query(max_length=30, description="city id")] = None,
+    sectors: Annotated[str | None, Query(max_length=600, description="comma-separated sector ids; matches ANY")] = None,
+    skills: Annotated[str | None, Query(max_length=1500, description="comma-separated skill ids; internship must list AT LEAST ONE")] = None,
     limit: Annotated[int, Query(ge=1, le=50)] = 12,
     offset: Annotated[int, Query(ge=0)] = 0,
 ):
@@ -55,7 +61,7 @@ def browse_internships(
     saved = set(db.scalars(select(Internship.external_id).join(SavedInternship, SavedInternship.internship_id == Internship.id)
                            .where(SavedInternship.user_id == user.id)))
     return rec.browse(db, profile, scope=scope, q=q, sector_id=sector, location_id=city,
-                      limit=limit, offset=offset, saved_ids=saved)
+                      sector_ids=_ids(sectors), skill_ids=_ids(skills), limit=limit, offset=offset, saved_ids=saved)
 
 
 @router.get("/recommendations/{internship_id}", response_model=InternshipDetail)

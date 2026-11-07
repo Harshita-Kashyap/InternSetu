@@ -125,8 +125,8 @@ export default function HomeScreen({ navigation }: Props) {
         ) : null}
       </ScrollView>
 
-      <FilterSheet visible={sheet === "sector"} title={t("Sector")} options={sectors.names} loading={sectors.loading} value={sector} onChange={setSector} onClose={() => setSheet(null)} />
-      <FilterSheet visible={sheet === "city"} title={t("Location")} options={cities.names} loading={cities.loading} value={city} onChange={setCity} onClose={() => setSheet(null)} />
+      <FilterSheet single visible={sheet === "sector"} title={t("Sector")} options={sectors.names} loading={sectors.loading} value={sector ? [sector] : []} onChange={(v) => setSector(v[0] || "")} onClose={() => setSheet(null)} />
+      <FilterSheet single visible={sheet === "city"} title={t("Location")} options={cities.names} loading={cities.loading} value={city ? [city] : []} onChange={(v) => setCity(v[0] || "")} onClose={() => setSheet(null)} />
       <MatchSheet id={open} onClose={() => setOpen(null)} onProfile={() => navigation.navigate("Profile")} />
     </View>
   );

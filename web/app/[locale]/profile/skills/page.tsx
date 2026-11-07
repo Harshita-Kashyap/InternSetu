@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useT } from "../../../../i18n/useT";
-import { useRouter } from "next/navigation";
+import { useRouter } from "../../../../i18n/navigation";
 import Header from "../../../components/Header";
 import Stepper from "../../../components/Stepper";
 import Picker from "../../../components/ChipPicker";

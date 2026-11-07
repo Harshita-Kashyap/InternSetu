@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useT } from "../../../i18n/useT";
-import Link from "next/link";
+import { Link } from "../../../i18n/navigation";
 import AuthShell from "../../components/AuthShell";
 import { api } from "../../lib/api";
 import { useToast } from "../../components/Toast";

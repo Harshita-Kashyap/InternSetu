@@ -80,6 +80,8 @@ def profile_dict(p) -> dict:
         "preferred_roles": ids("preferred_role"),
         "location_preferences": {
             "home_location": p.home_location_id,
+            # a typed city that is not in the taxonomy: no location credit for "home", never a gate
+            "home_location_unlisted": bool(not p.home_location_id and getattr(p, "home_location_other", None)),
             "willing_to_travel": bool(p.willing_to_travel),
             "willing_to_relocate": bool(p.willing_to_relocate),
             "preferred_locations": ids("preferred_location"),

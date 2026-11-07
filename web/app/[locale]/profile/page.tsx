@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useT } from "../../../i18n/useT";
-import { useRouter } from "next/navigation";
+import { useRouter } from "../../../i18n/navigation";
 import { useTranslations } from "next-intl";
 import Header from "../../components/Header";
+import SelectOther from "../../components/SelectOther";
 import Stepper from "../../components/Stepper";
 import { useToast } from "../../components/Toast";
 import { loadProfileRemote, saveProfileRemote } from "../../lib/store";
@@ -44,7 +45,7 @@ export default function ProfilePage() {
       return;
     }
     try {
-      await saveProfileRemote({ education, degree, field, college });
+      await saveProfileRemote({ education, degree: degree.trim(), field: field.trim(), college: college.trim() });
       router.push("/profile/skills");
     } catch (e) {
       show(e instanceof Error ? e.message : tr("Could not save. Please try again."));
@@ -66,7 +67,7 @@ export default function ProfilePage() {
 
           <div className="completion">
             <div className="completion-bar"><span style={{ width: `${(filled / 3) * 100}%` }} /></div>
-            <small>{filled}/3 details added</small>
+            <small>{filled}/3 {tr("details added")}</small>
           </div>
 
           <div className="profile-form stagger">
@@ -79,23 +80,8 @@ export default function ProfilePage() {
               </select>
             </div>
 
-            <div className="profile-field">
-  <label htmlFor="degree">{t("degree")}</label>
-  <input
-    id="degree"
-    type="text"
-    value={degree}
-    onChange={(e) => setDegree(e.target.value)}
-    placeholder={t("degreePlaceholder")}
-    list="degree-list"
-  />
-  <datalist id="degree-list">{degrees.map((d) => <option key={d} value={d} />)}</datalist>
-</div>
-            <div className="profile-field">
-              <label htmlFor="field">{tr("Field of study")}</label>
-              <input id="field" type="text" value={field} onChange={(e) => setField(e.target.value)} placeholder={tr("e.g. Computer Science")} list="field-list" />
-              <datalist id="field-list">{fields.map((d) => <option key={d} value={d} />)}</datalist>
-            </div>
+            <SelectOther id="degree" label={t("degree")} options={degrees} value={degree} onChange={setDegree} placeholder={t("degreePlaceholder")} />
+            <SelectOther id="field" label={tr("Field of study")} options={fields} value={field} onChange={setField} placeholder={tr("e.g. Computer Science")} />
 
             <div className="profile-field">
               <label htmlFor="college">{tr("College / Institution")}</label>
@@ -103,7 +89,7 @@ export default function ProfilePage() {
             </div>
 
             <button type="button" className="profile-continue" onClick={next}>
-              Continue <span>→</span>
+              {tr("Continue")} <span>→</span>
             </button>
           </div>
         </div>

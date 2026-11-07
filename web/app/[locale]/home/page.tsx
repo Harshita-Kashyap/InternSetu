@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link, useRouter } from "../../../i18n/navigation";
 import Header from "../../components/Header";
 import MatchModal from "../../components/MatchModal";
 import { useToast } from "../../components/Toast";
 import { api, ApiError, BrowseItem } from "../../lib/api";
+import MultiSelect from "../../components/MultiSelect";
 import { useTax } from "../../lib/taxo";
 import { useT } from "../../../i18n/useT";
 
@@ -19,10 +19,12 @@ export default function HomePage() {
   const { toast, show } = useToast();
   const sectors = useTax("sector").items;
   const cities = useTax("city").items;
+  const skillOpts = useTax("skill").items;
   const [scope, setScope] = useState<Scope>("all");
   const [q, setQ] = useState("");
   const [query, setQuery] = useState("");
-  const [sector, setSector] = useState("");
+  const [sectorIds, setSectorIds] = useState<string[]>([]);
+  const [skillIds, setSkillIds] = useState<string[]>([]);
   const [city, setCity] = useState("");
   const [items, setItems] = useState<BrowseItem[] | null>(null);
   const [total, setTotal] = useState(0);
@@ -38,7 +40,7 @@ export default function HomePage() {
     const my = ++seq.current;
     if (offset === 0) { setItems(null); setFailed(false); } else setMore(true);
     try {
-      const r = await api.browse({ scope, q: query, sector, city, limit: PAGE, offset });
+      const r = await api.browse({ scope, q: query, sectors: sectorIds, skills: skillIds, city, limit: PAGE, offset });
       if (my !== seq.current) return;
       setComplete(r.profile_complete); setTotal(r.total);
       setItems((c) => (offset === 0 ? r.items : [...(c ?? []), ...r.items]));
@@ -50,7 +52,7 @@ export default function HomePage() {
       show(e instanceof ApiError ? e.message : tr("Could not load internships."));
     } finally { if (my === seq.current) setMore(false); }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scope, query, sector, city]);
+  }, [scope, query, sectorIds, skillIds, city]);
   useEffect(() => { load(0); }, [load]);
 
   const toggleSave = async (it: BrowseItem) => {
@@ -61,8 +63,8 @@ export default function HomePage() {
     } catch (e) { show(e instanceof ApiError ? e.message : tr("Could not update saved list.")); }
   };
 
-  const clear = () => { setQ(""); setQuery(""); setSector(""); setCity(""); };
-  const filtered = !!(query || sector || city);
+  const clear = () => { setQ(""); setQuery(""); setSectorIds([]); setSkillIds([]); setCity(""); };
+  const filtered = !!(query || sectorIds.length || skillIds.length || city);
 
   return (
     <main className="profile-page">
@@ -77,7 +79,7 @@ export default function HomePage() {
             <div className="reco-actions">
               <Link href="/recommendations" className="apply-btn linklike">★ {tr("My top matches")}</Link>
               <Link href="/saved" className="reco-edit">♥ {tr("Saved")}</Link>
-              <Link href="/profile" className="reco-edit">{tr("Edit profile")}</Link>
+              <Link href="/profile/edit" className="reco-edit">{tr("Edit profile")}</Link>
             </div>
           </div>
         </div>
@@ -92,10 +94,8 @@ export default function HomePage() {
         <div className="toolbar">
           <input type="search" className="pick-search toolbar-search" value={q} onChange={(e) => setQ(e.target.value)}
             placeholder={tr("Search title, company or keyword")} aria-label={tr("Search internships")} />
-          <select value={sector} onChange={(e) => setSector(e.target.value)} aria-label={tr("Sector")}>
-            <option value="">{tr("All sectors")}</option>
-            {sectors.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
+          <MultiSelect label={tr("Sector")} options={sectors} value={sectorIds} onChange={setSectorIds} hint={tr("Shows internships in any selected sector.")} />
+          <MultiSelect label={tr("Skills")} options={skillOpts} value={skillIds} onChange={setSkillIds} hint={tr("Shows internships that list at least one selected skill. Skills here are filters only; they do not change your eligibility.")} />
           <select value={city} onChange={(e) => setCity(e.target.value)} aria-label={tr("Location")}>
             <option value="">{tr("All locations")}</option>
             {cities.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}

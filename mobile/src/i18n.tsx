@@ -2,6 +2,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api, getToken } from "./api";
+import { hiExtra, mrExtra } from "./i18n_extra";
 
 export type Lang = "en" | "hi" | "mr";
 export const LANGS: { code: Lang; label: string }[] = [{ code: "en", label: "English" }, { code: "hi", label: "हिन्दी" }, { code: "mr", label: "मराठी" }];
@@ -106,8 +107,7 @@ const mr: Record<string, string> = {
   "Saved internships": "जतन केलेल्या इंटर्नशिप", "Skills that would help most": "सर्वाधिक उपयुक्त कौशल्ये", "Internships you bookmarked. Tap the heart on a recommendation to save it.": "तुम्ही बुकमार्क केलेल्या इंटर्नशिप. जतन करण्यासाठी शिफारशीवरील हृदयावर टॅप करा.",
   "No saved internships yet.": "अजून जतन केलेल्या इंटर्नशिप नाहीत.", "Remove": "काढा", "match": "जुळणी", "← Back to recommendations": "← शिफारशींकडे परत", "Could not load saved internships.": "जतन केलेल्या इंटर्नशिप लोड करता आल्या नाहीत.",
 };
-const dicts: Record<Lang, Record<string, string>> = { en: {}, hi, mr };
-
+export const dicts: Record<Lang, Record<string, string>> = { en: {}, hi: { ...hi, ...hiExtra }, mr: { ...mr, ...mrExtra } };
 type Ctx = { lang: Lang; setLang: (l: Lang, sync?: boolean) => void; t: (s: string) => string };
 const I18nCtx = createContext<Ctx>({ lang: "en", setLang: () => {}, t: (s) => s });
 export const useI18n = () => useContext(I18nCtx);

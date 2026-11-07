@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useT } from "../../../../i18n/useT";
-import { useRouter } from "next/navigation";
+import { useRouter } from "../../../../i18n/navigation";
 import Header from "../../../components/Header";
+import SelectOther from "../../../components/SelectOther";
 import Stepper from "../../../components/Stepper";
 import ChipPicker from "../../../components/ChipPicker";
 import { useToast } from "../../../components/Toast";
@@ -37,13 +38,13 @@ export default function PreferencesPage() {
     set((c) => (c.includes(v) ? c.filter((x) => x !== v) : [...c, v]));
 
   const submit = async () => {
-    if (!home) return show(tr("Please select the city where you live."));
+    if (!home.trim()) return show(tr("Please select the city where you live."));
     if (!mode) return show(tr("Please choose how far you are willing to go."));
     if (mode === "selected" && extra.length === 0) return show(tr("Please pick at least one other city."));
     if (picked.length === 0) return show(tr("Please select at least one preferred domain."));
     setSaving(true);
     try {
-      await saveProfileRemote({ location: home, relocate: mode, preferredLocations: extra, domains: picked });
+      await saveProfileRemote({ location: home.trim(), relocate: mode, preferredLocations: extra, domains: picked });
       router.push("/profile-summary");
     } catch (e) {
       show(e instanceof Error ? e.message : tr("Could not save. Please try again."));
@@ -70,13 +71,7 @@ export default function PreferencesPage() {
           <Stepper current={3} />
 
           <div className="preferences-form">
-            <div className="profile-field">
-              <label htmlFor="home">{tr("Where do you live?")}</label>
-              <select id="home" value={home} onChange={(e) => setHome(e.target.value)}>
-                <option value="" disabled>{tr("Select a city")}</option>
-                {cities.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
+            <SelectOther id="home" label={tr("Where do you live?")} options={cities} value={home} onChange={setHome} placeholder={tr("Type your city or town")} />
 
             <div className="preference-group">
               <div className="preference-heading">

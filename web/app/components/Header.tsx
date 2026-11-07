@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import LanguageSwitcher from "./LanguageSwitcher";
+import { Link, usePathname, useRouter } from "../../i18n/navigation";
 import ThemeToggle from "./ThemeToggle";
 import { useT } from "../../i18n/useT";
 import { endSession } from "../lib/store";
@@ -11,14 +10,14 @@ const NAV = [
   { href: "/home", label: "Discover" },
   { href: "/recommendations", label: "Top matches" },
   { href: "/saved", label: "Saved" },
-  { href: "/profile", label: "Edit profile" },
+  { href: "/profile/edit", label: "Edit profile" },
 ];
 
 export default function Header({ label = "Profile Setup" }: { label?: string }) {
   const tr = useT();
   const router = useRouter();
   const path = usePathname() ?? "";
-  const active = (h: string) => (h === "/profile" ? /\/profile(\/|$)/.test(path) : path.endsWith(h));
+  const active = (h: string) => (h === "/profile/edit" ? /\/profile(\/|$)/.test(path) : path.endsWith(h));
   return (
     <header className="profile-header">
       <Link href="/home" className="profile-brand" aria-label="InternSetu home">

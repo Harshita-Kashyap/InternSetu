@@ -30,6 +30,11 @@ class CandidateProfile(Base):
     year_of_completion: Mapped[int | None] = mapped_column(nullable=True)
 
     home_location_id: Mapped[str | None] = mapped_column(ForeignKey("taxonomy_entries.id"), nullable=True)
+    # Free text for values not in the taxonomy ("Other"). Display/contact only; the engine uses the *_id columns.
+    degree_other: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    field_of_study_other: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    home_location_other: Mapped[str | None] = mapped_column(String(120), nullable=True)
+
     willing_to_relocate: Mapped[bool] = mapped_column(default=False, server_default=sa.false(), nullable=False)
     willing_to_travel: Mapped[bool] = mapped_column(default=False, server_default=sa.false(), nullable=False)
 

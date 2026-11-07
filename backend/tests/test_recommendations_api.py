@@ -150,3 +150,51 @@ def test_browse_without_profile_and_suitable_needs_profile(loaded_client):
     s = loaded_client.get(f"{API}/me/internships?scope=suitable", headers=h)
     assert s.status_code == 409 and s.json()["error"]["code"] == "profile_incomplete"
     assert loaded_client.get(f"{API}/me/internships").status_code == 401
+
+
+def test_browse_multi_sector_and_skill_filters_match_any_and_keep_eligibility(loaded_client):
+    h = onboard(loaded_client, GOOD)
+    base = loaded_client.get(f"{API}/me/internships?limit=50", headers=h).json()
+    by_id = {i["internship_id"]: i for i in base["items"]}
+    sectors = sorted({_E.internships[i]["sector_id"] for i in by_id})[:2]
+    r = loaded_client.get(f"{API}/me/internships?limit=50&sectors={','.join(sectors)}", headers=h).json()
+    assert r["total"] > 0 and all(_E.internships[i["internship_id"]]["sector_id"] in sectors for i in r["items"])
+    one = loaded_client.get(f"{API}/me/internships?limit=50&sectors={sectors[0]}", headers=h).json()
+    assert one["total"] < r["total"] or len(sectors) == 1                       # ANY: more sectors, more results
+    sk = sorted(set(_E.internships[next(iter(by_id))]["mandatory_skills"]))[:1] + ["SK-UNKNOWN"]
+    s = loaded_client.get(f"{API}/me/internships?limit=50&skills={','.join(sk)}", headers=h).json()
+    assert s["total"] > 0
+    # filters are preferences only: eligibility/match of a shared item is identical with and without them
+    for i in s["items"]:
+        b = by_id.get(i["internship_id"])
+        if b:
+            assert (i["eligible"], i["match_percentage"]) == (b["eligible"], b["match_percentage"])
+
+
+def _profile(client, h):
+    return client.get(f"{API}/me/profile", headers=h).json()
+
+
+def test_other_text_is_saved_cleaned_and_swaps_with_ids(loaded_client):
+    h = auth_header(register(loaded_client).json()["access_token"])
+    p = loaded_client.patch(f"{API}/me/profile", headers=h,
+                            json={"degree_other": "  B.Voc   Animation ", "home_location_other": "Saugor"}).json()
+    assert p["degree_other"] == "B.Voc Animation" and p["home_location_other"] == "Saugor"   # trimmed, spaces collapsed
+    assert "home_location_id" not in p["missing_fields"]                                    # typed city counts as answered
+    bad = loaded_client.patch(f"{API}/me/profile", headers=h, json={"degree_other": "<script>"})
+    assert bad.status_code == 422
+    # choosing a real city clears the typed one (and vice versa)
+    city = next(e for e in loaded_client.get(f"{API}/taxonomy/city").json()["items"])["id"]
+    p = loaded_client.patch(f"{API}/me/profile", headers=h, json={"home_location_id": city}).json()
+    assert p["home_location_id"] == city and p["home_location_other"] is None
+    p = loaded_client.patch(f"{API}/me/profile", headers=h, json={"home_location_other": "Saugor"}).json()
+    assert p["home_location_id"] is None and p["home_location_other"] == "Saugor"
+    assert loaded_client.patch(f"{API}/me/profile", headers=h, json={"home_location_other": ""}).json()["home_location_other"] is None
+
+
+def test_profile_with_unlisted_city_still_gets_recommendations(loaded_client):
+    h = onboard(loaded_client, GOOD)
+    assert loaded_client.patch(f"{API}/me/profile", headers=h, json={"home_location_other": "Saugor"}).status_code == 200
+    assert loaded_client.post(f"{API}/me/profile/confirm", headers=h).status_code == 200
+    r = loaded_client.get(f"{API}/me/internships?limit=5", headers=h)
+    assert r.status_code == 200 and r.json()["total"] > 0          # no 500 / validation error: location is never a gate

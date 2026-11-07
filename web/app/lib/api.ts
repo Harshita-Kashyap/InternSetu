@@ -9,7 +9,7 @@ export type ApiProfile = {
   status: "draft" | "complete"; missing_fields: string[];
   education_level_id: string | null; degree_id: string | null; field_of_study_id: string | null; year_of_completion: number | null;
   skill_ids: string[]; interest_ids: string[]; preferred_role_ids: string[]; preferred_sector_ids: string[];
-  home_location_id: string | null; preferred_location_ids: string[];
+  home_location_id: string | null; degree_other?: string | null; field_of_study_other?: string | null; home_location_other?: string | null; preferred_location_ids: string[];
   willing_to_relocate: boolean; willing_to_travel: boolean; duration_preference: string | null; stipend_expectation: number | null;
 };
 export type ProfileUpdate = Partial<Omit<ApiProfile, "status" | "missing_fields">>;
@@ -106,9 +106,10 @@ export const api = {
   confirmProfile: () => req<ApiProfile>("/me/profile/confirm", { method: "POST" }),
   recommendations: (k?: number, lang?: string) => req<RecommendationsResponse>(`/me/recommendations?${new URLSearchParams({ ...(k ? { k: String(k) } : {}), ...(lang ? { lang } : {}) })}`),
   internship: (id: string, lang?: string) => req<InternshipDetail>(`/me/recommendations/${id}${lang ? `?lang=${lang}` : ""}`),
-  browse: (o: { scope: "all" | "suitable"; q?: string; sector?: string; city?: string; limit?: number; offset?: number }) => {
+  browse: (o: { scope: "all" | "suitable"; q?: string; sectors?: string[]; skills?: string[]; city?: string; limit?: number; offset?: number }) => {
     const p = new URLSearchParams({ scope: o.scope, limit: String(o.limit ?? 12), offset: String(o.offset ?? 0) });
-    if (o.q) p.set("q", o.q); if (o.sector) p.set("sector", o.sector); if (o.city) p.set("city", o.city);
+    if (o.q) p.set("q", o.q); if (o.sectors?.length) p.set("sectors", o.sectors.join(","));
+    if (o.skills?.length) p.set("skills", o.skills.join(",")); if (o.city) p.set("city", o.city);
     return req<BrowseResponse>(`/me/internships?${p}`);
   },
   saved: () => req<unknown[]>("/me/saved"),

@@ -22,6 +22,9 @@ class ProfileUpdate(BaseModel):
     preferred_role_ids: list[str] | None = Field(None, max_length=30)
     preferred_sector_ids: list[str] | None = Field(None, max_length=30)
     home_location_id: str | None = None
+    degree_other: str | None = Field(None, max_length=120)
+    field_of_study_other: str | None = Field(None, max_length=120)
+    home_location_other: str | None = Field(None, max_length=120)
     preferred_location_ids: list[str] | None = Field(None, max_length=30)
     willing_to_relocate: bool | None = None
     willing_to_travel: bool | None = None
@@ -33,6 +36,19 @@ class ProfileUpdate(BaseModel):
     def known_duration(cls, v):
         if v is not None and v not in KNOWN_DURATIONS:
             raise ValueError(f"Choose one of: {', '.join(KNOWN_DURATIONS)}.")
+        return v
+
+    @field_validator("degree_other", "field_of_study_other", "home_location_other")
+    @classmethod
+    def clean_other(cls, v):
+        """Trim, collapse spaces, reject control characters; empty -> None (clears it)."""
+        if v is None:
+            return None
+        v = " ".join(v.split())
+        if not v:
+            return None
+        if len(v) < 2 or any(ord(ch) < 32 for ch in v) or "<" in v or ">" in v:
+            raise ValueError("Enter 2-120 plain characters (no < or >).")
         return v
 
     @field_validator(*_LISTS)
@@ -53,6 +69,9 @@ class ProfileResponse(BaseModel):
     preferred_role_ids: list[str]
     preferred_sector_ids: list[str]
     home_location_id: str | None
+    degree_other: str | None = None
+    field_of_study_other: str | None = None
+    home_location_other: str | None = None
     preferred_location_ids: list[str]
     willing_to_relocate: bool
     willing_to_travel: bool

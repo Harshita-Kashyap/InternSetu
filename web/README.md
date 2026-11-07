@@ -26,3 +26,12 @@ Admins are never created by sign-up. Create one on the backend: `python -m app.s
 - Data is synthetic; the UI labels it as demo data and "Apply" opens the official PMIS portal.
 - Academic percentage/CGPA is intentionally not collected: no internship rule or scoring weight uses it.
 - Work-mode (remote/on-site) is not offered: internships carry no work-mode field.
+
+## Tests
+`npm install` then `npm test` (Vitest + Testing Library, jsdom). Covers the ID/"Other" mapping, SelectOther, MultiSelect,
+translation coverage (every `tr("...")` has en/hi/mr keys) and locale-aware navigation. Backend: `pytest` in `backend/`.
+
+## Profile "Other" values
+A degree, field or city not in the taxonomy is saved on the server as free text (`degree_other`, `field_of_study_other`,
+`home_location_other`; run `alembic upgrade head`). The matching engine still uses IDs only; a typed city earns no home-city
+credit but never blocks eligibility or recommendations.

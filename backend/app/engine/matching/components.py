@@ -44,7 +44,7 @@ def location_score(cand, intern, tax):
         return 1.0
     if loc in set(lp.get("preferred_locations", [])):
         return 0.9
-    if tax.city_state.get(loc) == tax.city_state.get(home) and lp.get("willing_to_travel"):
+    if home and tax.city_state.get(loc) == tax.city_state.get(home) and lp.get("willing_to_travel"):
         return 0.6
     if lp.get("willing_to_relocate"):
         return 0.4

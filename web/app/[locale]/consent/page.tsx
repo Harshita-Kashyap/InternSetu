@@ -2,9 +2,8 @@
 "use client";
 
 import { useState } from "react";
+import { Link, useRouter } from "../../../i18n/navigation";
 import { useT } from "../../../i18n/useT";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import AuthShell from "../../components/AuthShell";
 import { useToast } from "../../components/Toast";
 import { api, ApiError } from "../../lib/api";
@@ -29,8 +28,8 @@ export default function ConsentPage() {
   };
 
   return (
-    <AuthShell>
-      <section className="login-card card-rise">
+    <AuthShell visual={false}>
+      <section className="login-card card-rise legal-card">
         <div className="login-header">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -40,26 +39,19 @@ export default function ConsentPage() {
           />
           <p className="welcome-text">{tr("Your privacy matters")}</p>
           <h1>{tr("Privacy and consent")}</h1>
-          <p className="subtitle">
-            Before setting up your internship profile, please review
-            how your information will be used.
-          </p>
+          <p className="subtitle">{tr("Before setting up your internship profile, please review how your information will be used.")}</p>
         </div>
 
         <div className="login-form">
           <div className="form-field">
             <h3>{tr("How your information is used")}</h3>
+            <p>{tr("InternSetu uses the profile information you provide, such as education, skills, interests and location preferences, to help identify relevant internships.")}</p>
             <p>
-              InternSetu uses the profile information you provide,
-              such as education, skills, interests and location
-              preferences, to help identify relevant internships.
-            </p>
-            <p>
-              Please review the{" "}
+              {tr("Please review the")}{" "}
               <Link href="/privacy" className="register-button">
                 {tr("Privacy Policy")}
               </Link>{" "}
-              before continuing.
+              {tr("before continuing.")}
             </p>
           </div>
 
@@ -77,10 +69,7 @@ export default function ConsentPage() {
               onChange={(event) => setChecked(event.target.checked)}
               style={{ marginTop: "5px" }}
             />
-            <span>
-              I have read the Privacy Policy and consent to the
-              use of my information as described.
-            </span>
+            <span>{tr("I have read the Privacy Policy and consent to the use of my information as described.")}</span>
           </label>
 
           <button
@@ -89,7 +78,7 @@ export default function ConsentPage() {
             disabled={!checked || loading}
             onClick={continueToProfile}
           >
-            {loading ? tr("Please wait...") : "Continue"}
+            {loading ? tr("Please wait...") : tr("Continue")}
           </button>
         </div>
 

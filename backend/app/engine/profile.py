@@ -115,7 +115,8 @@ def normalize_profile(profile, tax):
     roles = c.id_list(profile, "preferred_roles", "role")
 
     loc_in = c.section(profile, "location_preferences")
-    home = c.one_id(loc_in.get("home_location"), "city", "location_preferences.home_location")         if loc_in is not None else None
+    home = c.one_id(loc_in.get("home_location"), "city", "location_preferences.home_location",
+                    required=not loc_in.get("home_location_unlisted"))         if loc_in is not None else None
     loc_in = loc_in or {}
     travel = c.flag(loc_in, "willing_to_travel", "location_preferences.willing_to_travel")
     relocate = c.flag(loc_in, "willing_to_relocate", "location_preferences.willing_to_relocate")

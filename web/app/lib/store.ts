@@ -1,5 +1,6 @@
 import { api, clearToken, ProfileUpdate } from "./api";
-import { loadTax, resolveId } from "./taxo";
+import { loadTax } from "./taxo";
+import { findId, idOrOther, nameOf } from "./profileMap";
 
 export type Profile = {
   education?: string; degree?: string; field?: string; college?: string;
@@ -24,7 +25,6 @@ export function endSession() {
   try { localStorage.removeItem(SESSION_KEY); localStorage.removeItem(PROFILE_KEY); } catch {}
 }
 
-const nameOf = (items: { id: string; name: string }[], id?: string | null) => items.find((i) => i.id === id)?.name;
 const namesOf = (items: { id: string; name: string }[], ids: string[]) => ids.map((i) => nameOf(items, i)).filter(Boolean) as string[];
 const idsOf = (items: { id: string; name: string }[], names: string[]) =>
   names.map((n) => items.find((i) => i.name === n)?.id).filter(Boolean) as string[];
@@ -40,11 +40,11 @@ export async function loadProfileRemote(): Promise<Profile> {
     const others = p.preferred_location_ids.filter((id) => id !== p.home_location_id);
     return {
       ...local,
-      education: nameOf(edu, p.education_level_id), degree: nameOf(deg, p.degree_id), field: nameOf(fos, p.field_of_study_id),
+      education: nameOf(edu, p.education_level_id), degree: nameOf(deg, p.degree_id) ?? p.degree_other ?? undefined, field: nameOf(fos, p.field_of_study_id) ?? p.field_of_study_other ?? undefined,
       skills: namesOf(sk, p.skill_ids), interests: namesOf(int, p.interest_ids), domains: namesOf(sec, p.preferred_sector_ids),
-      location: nameOf(city, p.home_location_id),
+      location: nameOf(city, p.home_location_id) ?? p.home_location_other ?? undefined,
       preferredLocations: namesOf(city, others),
-      relocate: !p.home_location_id ? undefined : p.willing_to_relocate ? "anywhere" : others.length ? "selected" : "nearby",
+      relocate: !(p.home_location_id || p.home_location_other) ? undefined : p.willing_to_relocate ? "anywhere" : others.length ? "selected" : "nearby",
     };
   } catch { return local; }
 }
@@ -53,22 +53,20 @@ export async function loadProfileRemote(): Promise<Profile> {
 export async function saveProfileRemote(patch: Partial<Profile>) {
   const u: ProfileUpdate = {};
   if (patch.education) { const m = idsOf(await loadTax("education_level"), [patch.education]); if (m[0]) u.education_level_id = m[0]; }
-  if (patch.degree) { const id = await resolveId("degree", patch.degree); if (!id) throw new Error(`We could not match "${patch.degree}". Please pick a degree from the suggestions.`); u.degree_id = id; }
-  if (patch.field) { const id = await resolveId("field_of_study", patch.field); if (!id) throw new Error(`We could not match "${patch.field}". Please pick a field from the suggestions.`); u.field_of_study_id = id; }
+  if (patch.degree) Object.assign(u, idOrOther(await loadTax("degree"), patch.degree, "degree_id", "degree_other"));
+  if (patch.field) Object.assign(u, idOrOther(await loadTax("field_of_study"), patch.field, "field_of_study_id", "field_of_study_other"));
   if (patch.skills) u.skill_ids = idsOf(await loadTax("skill"), patch.skills);
   if (patch.interests) u.interest_ids = idsOf(await loadTax("interest"), patch.interests);
   if (patch.domains) u.preferred_sector_ids = idsOf(await loadTax("sector"), patch.domains);
   if (patch.location) {
     const cities = await loadTax("city");
-    const [home] = idsOf(cities, [patch.location]);
-    if (home) {
-      u.home_location_id = home;
-      const mode = patch.relocate ?? "nearby";
-      const extra = mode === "nearby" ? [] : idsOf(cities, patch.preferredLocations ?? []).filter((id) => id !== home);
-      u.preferred_location_ids = [home, ...extra];          // matching uses these as "preferred cities"
-      u.willing_to_relocate = mode === "anywhere";           // matching uses this as "open to relocate"
-      u.willing_to_travel = mode !== "nearby";
-    }
+    Object.assign(u, idOrOther(cities, patch.location, "home_location_id", "home_location_other"));
+    const home = findId(cities, patch.location);               // typed city: no id, no "home" credit, still never a gate
+    const mode = patch.relocate ?? "nearby";
+    const extra = mode === "nearby" ? [] : idsOf(cities, patch.preferredLocations ?? []).filter((id) => id !== home);
+    u.preferred_location_ids = home ? [home, ...extra] : extra; // matching uses these as "preferred cities"
+    u.willing_to_relocate = mode === "anywhere";               // matching uses this as "open to relocate"
+    u.willing_to_travel = mode !== "nearby";
   }
   if (Object.keys(u).length) await api.updateProfile(u);
   saveProfile(patch);

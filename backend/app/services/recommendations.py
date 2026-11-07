@@ -136,9 +136,11 @@ def quick_fit(db: Session, profile: CandidateProfile | None, external_ids: list[
 
 
 def browse(db: Session, profile: CandidateProfile | None, *, scope: str, q: str | None, sector_id: str | None,
-           location_id: str | None, limit: int, offset: int, saved_ids: set[str]) -> dict:
+           location_id: str | None, limit: int, offset: int, saved_ids: set[str],
+           sector_ids: set[str] | None = None, skill_ids: set[str] | None = None) -> dict:
     """Search the active catalogue. With a complete profile every item says eligible / not eligible
-    (hard rules) and eligible ones carry a match %. scope="suitable" keeps eligible items only."""
+    (hard rules) and eligible ones carry a match %. scope="suitable" keeps eligible items only.
+    sector_ids / skill_ids are preference filters (match ANY); they never change eligibility or scores."""
     eng = get_engine(db)
     tax = eng.tax
     complete = profile is not None and profile.status == "complete"
@@ -148,6 +150,10 @@ def browse(db: Session, profile: CandidateProfile | None, *, scope: str, q: str 
     for iid in sorted(eng.internships):
         it = eng.internships[iid]
         if sector_id and it["sector_id"] != sector_id:
+            continue
+        if sector_ids and it["sector_id"] not in sector_ids:
+            continue
+        if skill_ids and not skill_ids & {*(it.get("mandatory_skills") or []), *(it.get("preferred_skills") or [])}:
             continue
         if location_id and it["location"] != location_id:
             continue
