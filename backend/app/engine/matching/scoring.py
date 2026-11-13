@@ -14,11 +14,11 @@ def relevance_label(score):
     return 3 if score >= 0.75 else 2 if score >= 0.55 else 1 if score >= 0.30 else 0
 
 
-def score_pair(cand, intern, tax, weights=WEIGHTS):
-    """Eligibility first; ineligible pairs score 0 on everything."""
+def score_pair(cand, intern, tax, weights=WEIGHTS, force=False):
+    """Eligibility first; ineligible pairs score 0 on everything unless force=True (used for close matches)."""
     eligible, reason, missing = check_eligibility(cand, intern, tax)
-    comps = component_scores(cand, intern, tax) if eligible else dict(ZERO)
-    score = round(sum(w * comps[_KEY[k]] for k, w in weights.items()), 4) if eligible else 0.0
+    comps = component_scores(cand, intern, tax) if (eligible or force) else dict(ZERO)
+    score = round(sum(w * comps[_KEY[k]] for k, w in weights.items()), 4) if (eligible or force) else 0.0
     return {"eligible": eligible, "eligibility_reason": reason, "missing_mandatory_ids": missing,
             **comps, "match_score": score, "match_percentage": round(score * 100, 2),
             "relevance_label": relevance_label(score)}

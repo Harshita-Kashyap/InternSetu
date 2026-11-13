@@ -3,6 +3,7 @@ export type RootStackParamList = {
   Consent: undefined;
   Home: undefined;
   Saved: undefined;
+  Account: undefined;
   Register: undefined;
   ForgotPassword: undefined;
   Profile: undefined;
@@ -10,4 +11,5 @@ export type RootStackParamList = {
   Skills: undefined;
   Preferences: undefined;
   Recommendations: undefined;
+  PmisCheck: undefined;
 };

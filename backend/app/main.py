@@ -9,6 +9,7 @@ from app.api.router import api_router
 from app.api.routes.health import router as health_router
 from app.core.config import settings
 from app.core.errors import register_exception_handlers
+from app.core.request_log import RequestLogMiddleware, setup_logging
 
 def _warm_up():
     """Build the engine and its scorers once at start-up so the first request is fast (SRS: ~3 s target)."""
@@ -34,6 +35,8 @@ async def lifespan(_app: FastAPI):
     yield
 
 
+setup_logging()
+
 app = FastAPI(
     lifespan=lifespan,
     title="InternSetu API",
@@ -41,11 +44,13 @@ app = FastAPI(
     version="0.2.0",
 )
 
+app.add_middleware(RequestLogMiddleware)   # added first = inside CORS, so even a 500 answer carries CORS headers
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Request-ID"],
     max_age=86400,
 )
 

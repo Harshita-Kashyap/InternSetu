@@ -20,11 +20,15 @@ export default function ProfileSummaryPage() {
   }, []);
 
   if (!ready) {
-    return <main className="profile-page"><Header /></main>;
+    return (
+      <main className="profile-page">
+        <Header />
+        <section className="profile-container"><p className="muted" role="status">{tr("Loading…")}</p></section>
+      </main>
+    );
   }
 
   const skills = profile.skills ?? [];
-  const interests = profile.interests ?? [];
   const domains = profile.domains ?? [];
 
   const missingItems = [
@@ -32,8 +36,7 @@ export default function ProfileSummaryPage() {
     !profile.degree?.trim() && tr("degree or qualification"),
     !profile.field?.trim() && tr("field of study"),
     skills.length === 0 && tr("at least one skill"),
-    interests.length === 0 && tr("at least one interest"),
-    !profile.relocate && tr("relocation preference"),
+    !profile.relocate && tr("moving preference"),
     domains.length === 0 && tr("preferred domain"),
   ].filter(Boolean) as string[];
 
@@ -118,15 +121,14 @@ export default function ProfileSummaryPage() {
                 borderRadius: "14px",
               }}
             >
-              <h2>{tr("Skills & Interests")}</h2>
+              <h2>{tr("Skills")}</h2>
               <p><strong>{tr("Skills:")}</strong> {skills.join(", ") || "Not provided"}</p>
-              <p><strong>{tr("Interests:")}</strong> {interests.join(", ") || "Not provided"}</p>
               <button
                 type="button"
                 className="register-button"
                 onClick={() => editSection("/profile/skills")}
               >
-                {tr("Edit Skills & Interests")}
+                {tr("Edit Skills")}
               </button>
             </section>
 
@@ -140,7 +142,7 @@ export default function ProfileSummaryPage() {
             >
               <h2>{tr("Internship Preferences")}</h2>
               <p><strong>{tr("Preferred location:")}</strong> {value(profile.location)}</p>
-              <p><strong>{tr("Location preference:")}</strong> {profile.relocate === "nearby" ? tr("Nearby only") : profile.relocate === "selected" ? `${tr("Selected cities")}: ${(profile.preferredLocations ?? []).join(", ")}` : profile.relocate === "anywhere" ? tr("Open to relocate anywhere") : "Not provided"}</p>
+              <p><strong>{tr("Location preference:")}</strong> {profile.relocate === "nearby" ? tr("Nearby only") : profile.relocate === "selected" ? `${tr("Selected cities")}: ${(profile.preferredLocations ?? []).join(", ")}` : profile.relocate === "anywhere" ? tr("Can move anywhere") : "Not provided"}</p>
               <p><strong>{tr("Preferred domains:")}</strong> {domains.join(", ") || "Not provided"}</p>
               <button
                 type="button"

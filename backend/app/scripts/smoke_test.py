@@ -25,10 +25,6 @@ PROFILE = {
         "SK-COMM-003",
         "SK-HOSP-006"
     ],
-    "interest_ids": [
-        "INT-022",
-        "INT-006"
-    ],
     "preferred_role_ids": [
         "ROLE-054"
     ],

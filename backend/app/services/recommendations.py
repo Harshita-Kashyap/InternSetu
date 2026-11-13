@@ -19,7 +19,8 @@ _lock = threading.Lock()
 
 def _build_engine(db: Session) -> RecommendationEngine:
     entries = [
-        {"id": e.id, "type": e.type, "name": e.name, "parent_id": e.parent_id, "order_rank": e.order_rank}
+        {"id": e.id, "type": e.type, "name": e.name, "parent_id": e.parent_id, "order_rank": e.order_rank,
+         "lat": e.latitude, "lng": e.longitude}
         for e in db.scalars(select(TaxonomyEntry).where(TaxonomyEntry.is_active.is_(True)))
     ]
     records = {}
@@ -58,6 +59,12 @@ def reset_engine() -> None:
         _engine = None
 
 
+FEW_NEARBY_MESSAGE = ("Only {n} internship(s) near your home (within {km} km) match you. "
+                      "We also show some further away so you have more choices.")
+NOTHING_IN_SECTORS = ("Nothing in your chosen industries fits you yet. Turn off 'Only my industries' to see other options, "
+                      "or add skills to unlock more.")
+
+
 def _engine_errors(fn):
     try:
         return fn()
@@ -67,21 +74,27 @@ def _engine_errors(fn):
         raise ApiError(503, "engine_unavailable", str(e))
 
 
-def recommend_for_profile(db: Session, profile: CandidateProfile, k: int, method: str) -> dict:
+def recommend_for_profile(db: Session, profile: CandidateProfile, k: int, method: str,
+                          close_matches: bool = True, only_my_sectors: bool = False) -> dict:
     eng = get_engine(db)
     pd = ea.profile_dict(profile)
 
     def run():
-        res = eng.recommend(pd, k=k, method=method)
+        res = eng.recommend(pd, k=k, method=method, include_near=close_matches, only_sectors=only_my_sectors)
         cand = normalize_profile(pd, eng.tax)
         recs = [ea.enrich(r, eng, cand, settings.pmis_portal_url) for r in res["recommendations"]]
         nearest = ea.nearest_internships(eng, pd) if not recs else []
-        return res, recs, nearest
+        unlocks = ea.skill_unlocks(eng, cand)
+        return res, recs, nearest, unlocks
 
-    res, recs, nearest = _engine_errors(run)
+    res, recs, nearest, unlocks = _engine_errors(run)
     demo = any(i.get("data_source") != "real" for i in eng.internships.values())
     message = res["message"]
-    if not recs:
+    sectors_only = bool(only_my_sectors and (pd.get("preferences") or {}).get("preferred_sectors"))
+    near = ea.nearby_summary(eng, normalize_profile(pd, eng.tax))
+    if not recs and sectors_only:
+        message = NOTHING_IN_SECTORS
+    elif not recs:
         message = ("No internship matches your current skills and education yet. "
                    "Here are the closest ones and what you would need.")
     return {
@@ -90,6 +103,8 @@ def recommend_for_profile(db: Session, profile: CandidateProfile, k: int, method
         "message": message, "is_demo_data": demo, "demo_notice": ea.DEMO_NOTICE if demo else None,
         "disclaimer": ea.DISCLAIMER, "recommendations": recs,
         "skill_gap_summary": ea.summarize_skill_gaps(recs, eng), "nearest": nearest,
+        "skill_unlocks": unlocks, "only_my_sectors": sectors_only, "nearby_count": near["nearby_count"],
+        "location_message": FEW_NEARBY_MESSAGE.format(n=near["nearby_count"], km=ea.NEARBY_KM) if near["few_nearby"] else None, "close_count": sum(1 for r in recs if r.get("tier") == "near"),
     }
 
 
@@ -110,12 +125,14 @@ def internship_detail(db: Session, profile: CandidateProfile, external_id: str) 
         "internship_id": external_id, "title": intern["title"], "description": intern.get("description", ""),
         **ea.internship_facts(eng, intern, settings.pmis_portal_url),
         "facilities": intern.get("facilities", []),
+        "distance_km": ea.distance_km(tax, cand["location_preferences"].get("home_location"), intern["location"]),
         "education_required": tax.edu_name.get(req, req) if req else None,
         "mandatory_skills": [{"id": s, "name": tax.skill_name.get(s, s)} for s in intern["mandatory_skills"]],
         "preferred_skills": [{"id": s, "name": tax.skill_name.get(s, s)} for s in intern["preferred_skills"]],
         "eligible": ev["eligible"], "match_percentage": ev["match_percentage"], "low_match": ev["low_match"],
         "match_tag": ev["match_tag"], "why_recommended": ev["why_recommended"],
-        "considerations": ev["considerations"], "skill_gap": {**ev["skill_gap"], **ea.skill_gap_ids(cand, intern)},
+        "considerations": ev["considerations"], "why_codes": ev["why_codes"], "consider_codes": ev["consider_codes"],
+        "skill_gap": {**ev["skill_gap"], **ea.skill_gap_ids(cand, intern)},
         "disclaimer": ea.DISCLAIMER,
     }
 
@@ -137,7 +154,8 @@ def quick_fit(db: Session, profile: CandidateProfile | None, external_ids: list[
 
 def browse(db: Session, profile: CandidateProfile | None, *, scope: str, q: str | None, sector_id: str | None,
            location_id: str | None, limit: int, offset: int, saved_ids: set[str],
-           sector_ids: set[str] | None = None, skill_ids: set[str] | None = None) -> dict:
+           sector_ids: set[str] | None = None, skill_ids: set[str] | None = None,
+           facility_keys: set[str] | None = None) -> dict:
     """Search the active catalogue. With a complete profile every item says eligible / not eligible
     (hard rules) and eligible ones carry a match %. scope="suitable" keeps eligible items only.
     sector_ids / skill_ids are preference filters (match ANY); they never change eligibility or scores."""
@@ -157,12 +175,15 @@ def browse(db: Session, profile: CandidateProfile | None, *, scope: str, q: str 
             continue
         if location_id and it["location"] != location_id:
             continue
+        if facility_keys and not ea.has_facilities(it, facility_keys):
+            continue
         if needle and needle not in f"{it['title']} {it['company_name']} {it.get('description', '')}".lower():
             continue
         row = {"internship_id": iid, "title": it["title"], **ea.internship_facts(eng, it, settings.pmis_portal_url),
                "saved": iid in saved_ids, "eligible": None, "match_percentage": None, "low_match": None,
-               "missing_mandatory": [], "education_ok": None}
+               "missing_mandatory": [], "education_ok": None, "distance_km": None}
         if cand is not None:
+            row["distance_km"] = ea.distance_km(tax, cand["location_preferences"].get("home_location"), it["location"])
             ok, _reason, missing = check_eligibility(cand, it, tax)
             row["eligible"] = ok
             row["missing_mandatory"] = [tax.skill_name.get(s, s) for s in missing]

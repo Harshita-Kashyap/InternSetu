@@ -1,11 +1,12 @@
-// Lightweight i18n: English text is the key; hi/mr fall back to English if a string is missing.
+// Lightweight i18n: English text is the key; hi/mr/bn fall back to English if a string is missing.
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { setFontScript } from "./theme";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api, getToken } from "./api";
-import { hiExtra, mrExtra } from "./i18n_extra";
+import { bnExtra, hiExtra, mrExtra } from "./i18n_extra";
 
-export type Lang = "en" | "hi" | "mr";
-export const LANGS: { code: Lang; label: string }[] = [{ code: "en", label: "English" }, { code: "hi", label: "हिन्दी" }, { code: "mr", label: "मराठी" }];
+export type Lang = "en" | "hi" | "mr" | "bn";
+export const LANGS: { code: Lang; label: string }[] = [{ code: "en", label: "English" }, { code: "hi", label: "हिन्दी" }, { code: "mr", label: "मराठी" }, { code: "bn", label: "বাংলা" }];
 const KEY = "internsetu_lang";
 
 const hi: Record<string, string> = {
@@ -107,14 +108,15 @@ const mr: Record<string, string> = {
   "Saved internships": "जतन केलेल्या इंटर्नशिप", "Skills that would help most": "सर्वाधिक उपयुक्त कौशल्ये", "Internships you bookmarked. Tap the heart on a recommendation to save it.": "तुम्ही बुकमार्क केलेल्या इंटर्नशिप. जतन करण्यासाठी शिफारशीवरील हृदयावर टॅप करा.",
   "No saved internships yet.": "अजून जतन केलेल्या इंटर्नशिप नाहीत.", "Remove": "काढा", "match": "जुळणी", "← Back to recommendations": "← शिफारशींकडे परत", "Could not load saved internships.": "जतन केलेल्या इंटर्नशिप लोड करता आल्या नाहीत.",
 };
-export const dicts: Record<Lang, Record<string, string>> = { en: {}, hi: { ...hi, ...hiExtra }, mr: { ...mr, ...mrExtra } };
+export const dicts: Record<Lang, Record<string, string>> = { en: {}, hi: { ...hi, ...hiExtra }, mr: { ...mr, ...mrExtra }, bn: { ...bnExtra } };
 type Ctx = { lang: Lang; setLang: (l: Lang, sync?: boolean) => void; t: (s: string) => string };
 const I18nCtx = createContext<Ctx>({ lang: "en", setLang: () => {}, t: (s) => s });
 export const useI18n = () => useContext(I18nCtx);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
-  useEffect(() => { AsyncStorage.getItem(KEY).then((v) => { if (v === "hi" || v === "mr" || v === "en") setLangState(v); }).catch(() => {}); }, []);
+  useEffect(() => { setFontScript(lang); }, [lang]);
+  useEffect(() => { AsyncStorage.getItem(KEY).then((v) => { if (v === "hi" || v === "mr" || v === "bn" || v === "en") setLangState(v); }).catch(() => {}); }, []);
   const setLang = useCallback((l: Lang, sync = true) => {
     setLangState(l);
     AsyncStorage.setItem(KEY, l).catch(() => {});

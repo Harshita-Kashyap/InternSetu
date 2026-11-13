@@ -45,7 +45,7 @@ export default function ConsentPage() {
         <div className="login-form">
           <div className="form-field">
             <h3>{tr("How your information is used")}</h3>
-            <p>{tr("InternSetu uses the profile information you provide, such as education, skills, interests and location preferences, to help identify relevant internships.")}</p>
+            <p>{tr("InternSetu uses the profile information you provide, such as education, skills and location preferences, to help identify relevant internships.")}</p>
             <p>
               {tr("Please review the")}{" "}
               <Link href="/privacy" className="register-button">

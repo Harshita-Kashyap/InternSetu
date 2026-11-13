@@ -1,4 +1,11 @@
+from typing import Any
+
 from pydantic import BaseModel
+
+
+class ReasonCode(BaseModel):
+    code: str                     # e.g. SKILLS_MATCH, LOC_HOME (see engine/explanation/reasons.py)
+    params: dict[str, Any] = {}   # values to put in the sentence (names, counts)
 
 
 class RelatedSkill(BaseModel):
@@ -31,9 +38,28 @@ class RecommendationItem(BaseModel):
     match_tag: str | None         # "Low match" or null
     why_recommended: list[str]
     considerations: list[str]
+    why_codes: list[ReasonCode] = []        # same reasons as codes + parameters, for clients that translate themselves
+    consider_codes: list[ReasonCode] = []
     skill_gap: SkillGap
     apply_url: str                # official PMIS portal; InternSetu never applies for the user
     is_demo_data: bool
+    tier: str = "eligible"          # "eligible" or "near" (close match: 1-2 mandatory skills missing)
+    eligible: bool = True
+    tier_label: str = "Eligible"   # "Eligible", "Close match" or "Starter" (many skills still needed)
+    starter: bool = False
+    distance_km: int | None = None   # straight-line km from your home place (null if unknown)
+
+
+class CourseLink(BaseModel):
+    provider: str
+    url: str
+
+
+class SkillUnlock(BaseModel):
+    skill_id: str
+    skill: str
+    unlocks: int                  # internships this ONE skill would make you eligible for
+    course_links: list[CourseLink] = []   # free-course search links (SWAYAM, YouTube)
 
 
 class SkillGapSummaryItem(BaseModel):
@@ -51,6 +77,7 @@ class NearestItem(BaseModel):
     missing_mandatory: list[str]
     education_gap_levels: int
     reason: str
+    reason_codes: list[ReasonCode] = []
 
 
 class RecommendationsResponse(BaseModel):
@@ -65,7 +92,12 @@ class RecommendationsResponse(BaseModel):
     disclaimer: str
     recommendations: list[RecommendationItem]
     skill_gap_summary: list[SkillGapSummaryItem]
-    nearest: list[NearestItem]    # only filled when nothing is eligible
+    nearest: list[NearestItem]    # only filled when nothing at all can be shown
+    skill_unlocks: list[SkillUnlock] = []
+    close_count: int = 0
+    only_my_sectors: bool = False   # true when the list was limited to the chosen industries
+    nearby_count: int = 0           # eligible + close-match internships within ~100 km of home
+    location_message: str | None = None   # set when you prefer to stay near home and few options are near
 
 
 class SkillRef(BaseModel):
@@ -85,6 +117,7 @@ class InternshipDetail(BaseModel):
     duration: str | None
     stipend_inr_per_month: int | None
     facilities: list[str]
+    distance_km: int | None = None
     education_required: str | None
     mandatory_skills: list[SkillRef]
     preferred_skills: list[SkillRef]
@@ -97,6 +130,8 @@ class InternshipDetail(BaseModel):
     match_tag: str | None
     why_recommended: list[str]
     considerations: list[str]
+    why_codes: list[ReasonCode] = []
+    consider_codes: list[ReasonCode] = []
     skill_gap: SkillGap
     disclaimer: str
 
@@ -132,6 +167,7 @@ class BrowseItem(BaseModel):
     low_match: bool | None = None
     missing_mandatory: list[str] = []     # why an internship is not eligible (skills)
     education_ok: bool | None = None
+    distance_km: int | None = None
 
 
 class BrowseResponse(BaseModel):

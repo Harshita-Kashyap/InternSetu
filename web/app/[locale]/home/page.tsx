@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useRouter } from "../../../i18n/navigation";
 import Header from "../../components/Header";
 import MatchModal from "../../components/MatchModal";
+import ApplyHelp from "../../components/ApplyHelp";
 import { useToast } from "../../components/Toast";
 import { api, ApiError, BrowseItem } from "../../lib/api";
 import MultiSelect from "../../components/MultiSelect";
@@ -26,6 +27,7 @@ export default function HomePage() {
   const [sectorIds, setSectorIds] = useState<string[]>([]);
   const [skillIds, setSkillIds] = useState<string[]>([]);
   const [city, setCity] = useState("");
+  const [facs, setFacs] = useState<string[]>([]);
   const [items, setItems] = useState<BrowseItem[] | null>(null);
   const [total, setTotal] = useState(0);
   const [complete, setComplete] = useState<boolean | null>(null);
@@ -40,7 +42,7 @@ export default function HomePage() {
     const my = ++seq.current;
     if (offset === 0) { setItems(null); setFailed(false); } else setMore(true);
     try {
-      const r = await api.browse({ scope, q: query, sectors: sectorIds, skills: skillIds, city, limit: PAGE, offset });
+      const r = await api.browse({ scope, q: query, sectors: sectorIds, skills: skillIds, city, facilities: facs, limit: PAGE, offset });
       if (my !== seq.current) return;
       setComplete(r.profile_complete); setTotal(r.total);
       setItems((c) => (offset === 0 ? r.items : [...(c ?? []), ...r.items]));
@@ -52,7 +54,7 @@ export default function HomePage() {
       show(e instanceof ApiError ? e.message : tr("Could not load internships."));
     } finally { if (my === seq.current) setMore(false); }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scope, query, sectorIds, skillIds, city]);
+  }, [scope, query, sectorIds, skillIds, city, facs]);
   useEffect(() => { load(0); }, [load]);
 
   const toggleSave = async (it: BrowseItem) => {
@@ -63,8 +65,8 @@ export default function HomePage() {
     } catch (e) { show(e instanceof ApiError ? e.message : tr("Could not update saved list.")); }
   };
 
-  const clear = () => { setQ(""); setQuery(""); setSectorIds([]); setSkillIds([]); setCity(""); };
-  const filtered = !!(query || sectorIds.length || skillIds.length || city);
+  const clear = () => { setQ(""); setQuery(""); setSectorIds([]); setSkillIds([]); setCity(""); setFacs([]); };
+  const filtered = !!(query || sectorIds.length || skillIds.length || city || facs.length);
 
   return (
     <main className="profile-page">
@@ -79,11 +81,12 @@ export default function HomePage() {
             <div className="reco-actions">
               <Link href="/recommendations" className="apply-btn linklike">★ {tr("My top matches")}</Link>
               <Link href="/saved" className="reco-edit">♥ {tr("Saved")}</Link>
+              <Link href="/pmis-check" className="reco-edit">✓ {tr("Can I apply to PMIS?")}</Link>
               <Link href="/profile/edit" className="reco-edit">{tr("Edit profile")}</Link>
             </div>
           </div>
         </div>
-        <p className="notice">ⓘ {tr("These are demo listings (synthetic data), not official PMIS vacancies. Apply only on the official PMIS portal.")}</p>
+        <p className="notice">ⓘ {tr("These are demo listings (sample data), not official PMIS vacancies. Apply only on the official PMIS portal.")}</p>
 
         <div className="tabs" role="tablist" aria-label={tr("Internship views")}>
           {([["all", tr("All internships")], ["suitable", tr("Suitable for me")]] as [Scope, string][]).map(([id, label]) => (
@@ -101,6 +104,12 @@ export default function HomePage() {
             {cities.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
           {filtered && <button type="button" className="ghost-btn" onClick={clear}>{tr("Clear")}</button>}
+        </div>
+        <div className="chip-row" role="group" aria-label={tr("Facilities")}>
+          <span className="chip-label">{tr("Must offer")}:</span>
+          {([["food", tr("Food")], ["stay", tr("Stay")], ["transport", tr("Transport")], ["travel_allowance", tr("Travel allowance")]] as [string, string][]).map(([k, label]) => (
+            <button key={k} type="button" className="fac-chip" aria-pressed={facs.includes(k)} onClick={() => setFacs((c) => (c.includes(k) ? c.filter((x) => x !== k) : [...c, k]))}>{label}</button>
+          ))}
         </div>
         {complete === false && <p className="notice">{tr("Complete your profile to see eligibility and match scores.")} <Link href="/profile">{tr("Complete profile")}</Link></p>}
         {items && !failed && <p className="result-count" aria-live="polite">{total} {tr("internships")}</p>}
@@ -128,6 +137,7 @@ export default function HomePage() {
               </div>
               <div className="job-tags">
                 <span className="tag">📍 {j.location_name}</span>
+                {j.distance_km != null && j.distance_km > 0 && <span className="tag">{j.distance_km} km {tr("away")}</span>}
                 <span className="tag tag-domain">{j.sector_name}</span>
                 {j.duration && <span className="tag">🕒 {j.duration}</span>}
                 {j.stipend_inr_per_month != null && <span className="tag">₹{j.stipend_inr_per_month.toLocaleString("en-IN")}/{tr("mo")}</span>}
@@ -135,7 +145,7 @@ export default function HomePage() {
               </div>
               {j.eligible === true && <p className={`status ${j.low_match ? "warn" : "ok"}`}>{j.low_match ? tr("Eligible · low match") : tr("Eligible")}</p>}
               {j.eligible === false && (
-                <p className="status bad">{tr("Not eligible")}: {j.missing_mandatory.length ? `${tr("needs")} ${j.missing_mandatory.slice(0, 3).join(", ")}${j.missing_mandatory.length > 3 ? ` +${j.missing_mandatory.length - 3}` : ""}` : tr("education level below requirement")}</p>
+                <p className={`status ${j.education_ok !== false && j.missing_mandatory.length > 0 && j.missing_mandatory.length <= 2 ? "warn" : "bad"}`}>{j.education_ok !== false && j.missing_mandatory.length > 0 && j.missing_mandatory.length <= 2 ? `${tr("Close match")} · ` : ""}{tr("Not eligible")}: {j.missing_mandatory.length ? `${tr("needs")} ${j.missing_mandatory.slice(0, 3).join(", ")}${j.missing_mandatory.length > 3 ? ` +${j.missing_mandatory.length - 3}` : ""}` : tr("education level below requirement")}</p>
               )}
               <div className="job-bottom">
                 <button type="button" className="ghost-btn" onClick={() => setOpen(j.internship_id)}>{tr("Check match")}</button>
@@ -144,6 +154,7 @@ export default function HomePage() {
                   <a className="apply-btn linklike" href={j.apply_url} target="_blank" rel="noopener noreferrer">{tr("Apply on PMIS")}</a>
                 </div>
               </div>
+              <ApplyHelp />
             </article>
           ))}
         </div>

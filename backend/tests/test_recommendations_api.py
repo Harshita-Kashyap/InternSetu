@@ -38,7 +38,7 @@ def test_end_to_end_recommendations_match_the_engine(loaded_client):
     r = loaded_client.get(f"{API}/me/recommendations", headers=h)
     assert r.status_code == 200
     body = r.json()
-    expected = _E.recommend(ea.profile_dict(profile_obj(GOOD)), k=5, method="baseline")
+    expected = _E.recommend(ea.profile_dict(profile_obj(GOOD)), k=5, method="baseline", include_near=True)
     assert [x["internship_id"] for x in body["recommendations"]] == [x["internship_id"] for x in expected["recommendations"]]
     assert 3 <= body["count"] <= 5 and body["method"] == "baseline"
     assert [x["rank"] for x in body["recommendations"]] == list(range(1, body["count"] + 1))
@@ -58,7 +58,7 @@ def test_k_and_method_parameters(loaded_client):
 
 def test_nothing_eligible_returns_nearest_internships(loaded_client):
     h = onboard(loaded_client, ZERO)
-    body = loaded_client.get(f"{API}/me/recommendations", headers=h).json()
+    body = loaded_client.get(f"{API}/me/recommendations?close_matches=false", headers=h).json()
     assert body["count"] == 0 and body["recommendations"] == [] and body["message"]
     assert len(body["nearest"]) == 3
     assert all(n["missing_mandatory_ids"] or n["education_gap_levels"] for n in body["nearest"])
@@ -184,7 +184,7 @@ def test_other_text_is_saved_cleaned_and_swaps_with_ids(loaded_client):
     bad = loaded_client.patch(f"{API}/me/profile", headers=h, json={"degree_other": "<script>"})
     assert bad.status_code == 422
     # choosing a real city clears the typed one (and vice versa)
-    city = next(e for e in loaded_client.get(f"{API}/taxonomy/city").json()["items"])["id"]
+    city = loaded_client.get(f"{API}/taxonomy/city").json()[0]["id"]
     p = loaded_client.patch(f"{API}/me/profile", headers=h, json={"home_location_id": city}).json()
     assert p["home_location_id"] == city and p["home_location_other"] is None
     p = loaded_client.patch(f"{API}/me/profile", headers=h, json={"home_location_other": "Saugor"}).json()
@@ -198,3 +198,81 @@ def test_profile_with_unlisted_city_still_gets_recommendations(loaded_client):
     assert loaded_client.post(f"{API}/me/profile/confirm", headers=h).status_code == 200
     r = loaded_client.get(f"{API}/me/internships?limit=5", headers=h)
     assert r.status_code == 200 and r.json()["total"] > 0          # no 500 / validation error: location is never a gate
+
+
+def test_close_matches_fill_the_list_for_a_zero_eligible_candidate(loaded_client):
+    h = onboard(loaded_client, ZERO)
+    body = loaded_client.get(f"{API}/me/recommendations", headers=h).json()
+    assert body["count"] >= 3 and body["nearest"] == []
+    assert all(r["tier"] == "near" and r["eligible"] is False and r["tier_label"] == "Close match" for r in body["recommendations"])
+    assert all(1 <= len(r["skill_gap"]["missing_mandatory_ids"]) <= 2 for r in body["recommendations"])
+    assert body["close_count"] == body["count"] and body["message"]
+    assert all({"skill_id", "skill", "unlocks"} <= set(u) for u in body["skill_unlocks"])
+
+
+def test_only_my_sectors_flag_is_accepted_and_reported(loaded_client):
+    h = onboard(loaded_client, GOOD)
+    on = loaded_client.get(f"{API}/me/recommendations?only_my_sectors=true", headers=h).json()
+    off = loaded_client.get(f"{API}/me/recommendations", headers=h).json()
+    assert on["only_my_sectors"] is True and off["only_my_sectors"] is False
+    assert len(off["recommendations"]) >= 3
+
+
+def test_interests_are_retired_old_apps_may_still_send_them(loaded_client):
+    h = auth_header(register(loaded_client, email="old@example.com").json()["access_token"])
+    r = loaded_client.patch(f"{API}/me/profile", headers=h, json={**patch_payload(GOOD), "interest_ids": ["INT-001"]})
+    assert r.status_code == 200                      # accepted, not a 422
+    assert "interest_ids" not in loaded_client.get(f"{API}/me/profile", headers=h).json()   # never stored or returned
+
+
+def test_activities_endpoint_returns_only_loaded_skills(loaded_client):
+    body = loaded_client.get(f"{API}/taxonomy/activities").json()["activities"]
+    known = {s["id"] for s in loaded_client.get(f"{API}/taxonomy/skill?limit=500").json()}
+    assert body and all(set(a["skill_ids"]) <= known for a in body)     # v1 test data has no everyday skills, so those tiles are hidden
+
+
+def test_recommendations_carry_reason_codes_and_translate_from_them(loaded_client):
+    h = onboard(loaded_client, GOOD)
+    en = loaded_client.get(f"{API}/me/recommendations?lang=en", headers=h).json()["recommendations"][0]
+    hi = loaded_client.get(f"{API}/me/recommendations?lang=hi", headers=h).json()["recommendations"][0]
+    assert en["why_codes"] and all({"code", "params"} <= set(c) for c in en["why_codes"])
+    assert [c["code"] for c in hi["why_codes"]] == [c["code"] for c in en["why_codes"]]   # same reasons, any language
+    assert len(hi["why_recommended"]) == len(en["why_recommended"]) and hi["why_recommended"] != en["why_recommended"]
+    d = loaded_client.get(f"{API}/me/recommendations/{en['internship_id']}", headers=h).json()
+    assert d["why_codes"] == en["why_codes"]
+
+
+def test_location_fields_and_facilities_filter(loaded_client):
+    h = onboard(loaded_client, GOOD)
+    body = loaded_client.get(f"{API}/me/recommendations", headers=h).json()
+    assert "nearby_count" in body and "location_message" in body
+    assert all("distance_km" in r for r in body["recommendations"])
+    r = loaded_client.get(f"{API}/me/internships?facilities=food,stay", headers=h)
+    assert r.status_code == 200 and "items" in r.json()
+
+
+def test_delete_account_removes_profile_and_saved(loaded_client):
+    """#39: deleting an account must remove the profile and saved internships, so a new account with the same email starts empty."""
+    h = onboard(loaded_client, GOOD)
+    first = loaded_client.get(f"{API}/me/recommendations", headers=h).json()["recommendations"][0]["internship_id"]
+    assert loaded_client.put(f"{API}/me/saved/{first}", headers=h).status_code in (200, 204)
+    assert len(loaded_client.get(f"{API}/me/saved", headers=h).json()) == 1
+    assert loaded_client.get(f"{API}/me/export", headers=h).status_code == 200
+    d = loaded_client.request("DELETE", f"{API}/me", headers=h, json={"password": "Secret123"})
+    assert d.status_code == 200
+    assert loaded_client.get(f"{API}/auth/me", headers=h).status_code == 401
+    from app.core.otp import used_codes
+    used_codes.clear()   # a real person would get a new emailed code; the test code is the same within 5 minutes
+    h2 = auth_header(register(loaded_client, email="asha@example.com").json()["access_token"])
+    assert loaded_client.get(f"{API}/me/saved", headers=h2).json() == []
+    assert not loaded_client.get(f"{API}/me/profile", headers=h2).json().get("education_level")
+
+
+def test_untranslated_language_falls_back_to_english(loaded_client):
+    h = onboard(loaded_client, GOOD)
+    en = loaded_client.get(f"{API}/me/recommendations?lang=en", headers=h).json()["recommendations"][0]
+    te = loaded_client.get(f"{API}/me/recommendations?lang=te", headers=h)
+    assert te.status_code == 200 and te.json()["recommendations"][0]["why_recommended"] == en["why_recommended"]
+    bn = loaded_client.get(f"{API}/me/recommendations?lang=bn", headers=h).json()["recommendations"][0]
+    assert bn["why_recommended"] != en["why_recommended"]  # Bengali sentences exist (session 10)
+    assert loaded_client.get(f"{API}/me/recommendations?lang=fr", headers=h).status_code == 422

@@ -1,0 +1,49 @@
+Summary,Issue Type,Status,Labels,Labels,Labels,Description,Due date
+Form team and define problem statement,Task,Done,week-1,sprint-1,owner-krishna,"Week 1 (sprint 1 of 6), 24 Aug to 29 Aug 2026. Owner: Krishna. Report ref: SCRUM-1.",29/Aug/26
+Set up Jira board and product backlog,Task,Done,week-1,sprint-1,owner-harshita,"Week 1 (sprint 1 of 6), 24 Aug to 29 Aug 2026. Owner: Harshita. Report ref: SCRUM-2.",29/Aug/26
+Initialize Git repository with main and develop,Task,Done,week-1,sprint-1,owner-harshita,"Week 1 (sprint 1 of 6), 24 Aug to 29 Aug 2026. Owner: Harshita. Report ref: SCRUM-3.",29/Aug/26
+Write Project Vision document,Task,Done,week-1,sprint-1,owner-krishna,"Week 1 (sprint 1 of 6), 24 Aug to 29 Aug 2026. Owner: Krishna. Report ref: SCRUM-4.",29/Aug/26
+Draw Use Case Diagram,Task,Done,week-2,sprint-1,owner-krishna,"Week 2 (sprint 1 of 6), 30 Aug to 04 Sep 2026. Owner: Krishna. Report ref: SCRUM-5.",04/Sep/26
+Write use case descriptions,Task,Done,week-2,sprint-1,owner-krishna,"Week 2 (sprint 1 of 6), 30 Aug to 04 Sep 2026. Owner: Krishna. Report ref: SCRUM-6.",04/Sep/26
+Map use cases to Jira user stories,Task,Done,week-2,sprint-1,owner-harshita,"Week 2 (sprint 1 of 6), 30 Aug to 04 Sep 2026. Owner: Harshita. Report ref: SCRUM-7.",04/Sep/26
+Review and merge documents,Task,Done,week-2,sprint-1,owner-jiya,"Week 2 (sprint 1 of 6), 30 Aug to 04 Sep 2026. Owner: Jiya. Report ref: SCRUM-8.",04/Sep/26
+Identify domain entities,Task,Done,week-3,sprint-2,owner-ishika,"Week 3 (sprint 2 of 6), 05 Sep to 10 Sep 2026. Owner: Ishika. Report ref: SCRUM-9.",10/Sep/26
+Draw Object Diagram,Task,Done,week-3,sprint-2,owner-ishika,"Week 3 (sprint 2 of 6), 05 Sep to 10 Sep 2026. Owner: Ishika. Report ref: SCRUM-10.",10/Sep/26
+Draw domain Class Diagram,Task,Done,week-3,sprint-2,owner-ishika,"Week 3 (sprint 2 of 6), 05 Sep to 10 Sep 2026. Owner: Ishika. Report ref: SCRUM-11.",10/Sep/26
+Peer review of diagrams,Task,Done,week-3,sprint-2,owner-jiya,"Week 3 (sprint 2 of 6), 05 Sep to 10 Sep 2026. Owner: Jiya. Report ref: SCRUM-12.",10/Sep/26
+Draw Activity Diagram,Task,Done,week-4,sprint-2,owner-krishna,"Week 4 (sprint 2 of 6), 11 Sep to 16 Sep 2026. Owner: Krishna. Report ref: SCRUM-13.",16/Sep/26
+Set up PostgreSQL connection,Task,Done,week-4,sprint-2,owner-harshita,"Week 4 (sprint 2 of 6), 11 Sep to 16 Sep 2026. Owner: Harshita. Report ref: SCRUM-14.",16/Sep/26
+Create first database migration,Task,Done,week-4,sprint-2,owner-harshita,"Week 4 (sprint 2 of 6), 11 Sep to 16 Sep 2026. Owner: Harshita. Report ref: SCRUM-15.",16/Sep/26
+Update domain model,Task,Done,week-4,sprint-2,owner-ishika,"Week 4 (sprint 2 of 6), 11 Sep to 16 Sep 2026. Owner: Ishika. Report ref: SCRUM-16.",16/Sep/26
+Sequence Diagram: Login/Auth,Task,Done,week-5,sprint-3,owner-harshita,"Week 5 (sprint 3 of 6), 17 Sep to 22 Sep 2026. Owner: Harshita. Report ref: SCRUM-17.",22/Sep/26
+Sequence Diagram: Get Recommendations,Task,Done,week-5,sprint-3,owner-ishika,"Week 5 (sprint 3 of 6), 17 Sep to 22 Sep 2026. Owner: Ishika. Report ref: SCRUM-18.",22/Sep/26
+Align diagrams with activity flow,Task,Done,week-5,sprint-3,owner-jiya,"Week 5 (sprint 3 of 6), 17 Sep to 22 Sep 2026. Owner: Jiya. Report ref: SCRUM-19.",22/Sep/26
+Peer review of sequence diagrams,Task,Done,week-5,sprint-3,owner-jiya,"Week 5 (sprint 3 of 6), 17 Sep to 22 Sep 2026. Owner: Jiya. Report ref: SCRUM-20.",22/Sep/26
+Detailed Class Diagram,Task,Done,week-6,sprint-3,owner-ishika,"Week 6 (sprint 3 of 6), 23 Sep to 28 Sep 2026. Owner: Ishika. Report ref: SCRUM-21.",28/Sep/26
+"Package Diagram (api, core, models, services, engine)",Task,Done,week-6,sprint-3,owner-krishna,"Week 6 (sprint 3 of 6), 23 Sep to 28 Sep 2026. Owner: Krishna. Report ref: SCRUM-22.",28/Sep/26
+Apply SOLID and Strategy pattern,Task,Done,week-6,sprint-3,owner-ishika,"Week 6 (sprint 3 of 6), 23 Sep to 28 Sep 2026. Owner: Ishika. Report ref: SCRUM-23.",28/Sep/26
+Create folder structure matching packages,Task,Done,week-6,sprint-3,owner-ishika,"Week 6 (sprint 3 of 6), 23 Sep to 28 Sep 2026. Owner: Ishika. Report ref: SCRUM-24.",28/Sep/26
+Component Diagram,Task,Done,week-7,sprint-4,owner-jiya,"Week 7 (sprint 4 of 6), 29 Sep to 04 Oct 2026. Owner: Jiya. Report ref: SCRUM-25.",04/Oct/26
+Deployment Diagram (draft),Task,Done,week-7,sprint-4,owner-harshita,"Week 7 (sprint 4 of 6), 29 Sep to 04 Oct 2026. Owner: Harshita. Report ref: SCRUM-26.",04/Oct/26
+Update Package Diagram,Task,Done,week-7,sprint-4,owner-jiya,"Week 7 (sprint 4 of 6), 29 Sep to 04 Oct 2026. Owner: Jiya. Report ref: SCRUM-27.",04/Oct/26
+Plan Sprint 4 backlog,Task,Done,week-7,sprint-4,owner-jiya,"Week 7 (sprint 4 of 6), 29 Sep to 04 Oct 2026. Owner: Jiya. Report ref: SCRUM-28.",04/Oct/26
+Implement eligibility gate,Task,Done,week-8,sprint-4,owner-ishika,"Week 8 (sprint 4 of 6), 05 Oct to 10 Oct 2026. Owner: Ishika. Report ref: SCRUM-29.",10/Oct/26
+Implement scoring engine,Task,Done,week-8,sprint-4,owner-ishika,"Week 8 (sprint 4 of 6), 05 Oct to 10 Oct 2026. Owner: Ishika. Report ref: SCRUM-30.",10/Oct/26
+Implement ranking logic,Task,Done,week-8,sprint-4,owner-ishika,"Week 8 (sprint 4 of 6), 05 Oct to 10 Oct 2026. Owner: Ishika. Report ref: SCRUM-31.",10/Oct/26
+Unit tests for core logic,Task,Done,week-8,sprint-4,owner-krishna,"Week 8 (sprint 4 of 6), 05 Oct to 10 Oct 2026. Owner: Krishna. Report ref: SCRUM-32.",10/Oct/26
+Configure GitHub Actions workflow,Task,Done,week-9,sprint-5,owner-harshita,"Week 9 (sprint 5 of 6), 11 Oct to 16 Oct 2026. Owner: Harshita. Report ref: SCRUM-33.",16/Oct/26
+Run build and tests on every push,Task,Done,week-9,sprint-5,owner-krishna,"Week 9 (sprint 5 of 6), 11 Oct to 16 Oct 2026. Owner: Krishna. Report ref: SCRUM-34.",16/Oct/26
+Implement explanation module,Task,Done,week-9,sprint-5,owner-ishika,"Week 9 (sprint 5 of 6), 11 Oct to 16 Oct 2026. Owner: Ishika. Report ref: SCRUM-35.",16/Oct/26
+Branch protection and PR rules,Task,Done,week-9,sprint-5,owner-harshita,"Week 9 (sprint 5 of 6), 11 Oct to 16 Oct 2026. Owner: Harshita. Report ref: SCRUM-36.",16/Oct/26
+Build web screens (Next.js),Task,Done,week-10,sprint-5,owner-jiya,"Week 10 (sprint 5 of 6), 17 Oct to 22 Oct 2026. Owner: Jiya. Report ref: SCRUM-37.",22/Oct/26
+Build mobile screens (Expo),Task,Done,week-10,sprint-5,owner-harshita,"Week 10 (sprint 5 of 6), 17 Oct to 22 Oct 2026. Owner: Harshita. Report ref: SCRUM-38.",22/Oct/26
+Connect UI to API and database,Task,Done,week-10,sprint-5,owner-jiya,"Week 10 (sprint 5 of 6), 17 Oct to 22 Oct 2026. Owner: Jiya. Report ref: SCRUM-39.",22/Oct/26
+Move stories to In Progress and Testing,Task,Done,week-10,sprint-5,owner-krishna,"Week 10 (sprint 5 of 6), 17 Oct to 22 Oct 2026. Owner: Krishna. Report ref: SCRUM-40.",22/Oct/26
+Write PyTest unit tests,Task,Done,week-11,sprint-6,owner-krishna,"Week 11 (sprint 6 of 6), 23 Oct to 28 Oct 2026. Owner: Krishna. Report ref: SCRUM-41.",28/Oct/26
+Write API integration tests,Task,Done,week-11,sprint-6,owner-krishna,"Week 11 (sprint 6 of 6), 23 Oct to 28 Oct 2026. Owner: Krishna. Report ref: SCRUM-42.",28/Oct/26
+Add test report to CI pipeline,Task,Done,week-11,sprint-6,owner-harshita,"Week 11 (sprint 6 of 6), 23 Oct to 28 Oct 2026. Owner: Harshita. Report ref: SCRUM-43.",28/Oct/26
+Fix bugs found in testing,Task,Done,week-11,sprint-6,owner-jiya,"Week 11 (sprint 6 of 6), 23 Oct to 28 Oct 2026. Owner: Jiya. Report ref: SCRUM-44.",28/Oct/26
+Deploy to staging/production,Task,Done,week-12,sprint-6,owner-harshita,"Week 12 (sprint 6 of 6), 29 Oct to 04 Nov 2026. Owner: Harshita. Report ref: SCRUM-45.",04/Nov/26
+Finalize Deployment Diagram,Task,Done,week-12,sprint-6,owner-jiya,"Week 12 (sprint 6 of 6), 29 Oct to 04 Nov 2026. Owner: Jiya. Report ref: SCRUM-46.",04/Nov/26
+Update README and documentation,Task,Done,week-12,sprint-6,owner-krishna,"Week 12 (sprint 6 of 6), 29 Oct to 04 Nov 2026. Owner: Krishna. Report ref: SCRUM-47.",04/Nov/26
+Project demo and handover,Task,Done,week-12,sprint-6,owner-harshita,"Week 12 (sprint 6 of 6), 29 Oct to 04 Nov 2026. Owner: Harshita. Report ref: SCRUM-48.",04/Nov/26

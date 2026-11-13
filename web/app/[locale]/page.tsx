@@ -2,6 +2,7 @@
 "use client";
 import { useState } from "react";
 import { Link, useRouter } from "../../i18n/navigation";
+import Illustration from "../components/Illustration";
 import AuthShell from "../components/AuthShell";
 import { useToast } from "../components/Toast";
 import { api, ApiError } from "../lib/api";
@@ -46,6 +47,7 @@ export default function Home() {
         <div className="login-header">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.png" alt="InternSetu" className="login-logo" />
+          <Illustration name="welcome" className="login-hero" />
           <p className="welcome-text">{t("welcome")}</p>
           <h1>{t("heading")}</h1>
           <p className="subtitle">
@@ -110,7 +112,7 @@ export default function Home() {
           <span className="footer-dot"></span>
           {t("secureFooter")}
         </div>
-        <p className="admin-entry"><Link href="/admin">{tr("Administrator sign-in")}</Link></p>
+        <p className="admin-entry"><Link href="/pmis-check">{tr("Can I apply to PMIS?")}</Link> &nbsp;·&nbsp; <Link href="/admin">{tr("Administrator sign-in")}</Link></p>
       </section>
       {toast}
     </AuthShell>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import MicButton from "./MicButton";
 import { useT } from "../../i18n/useT";
 
 export type Opt = { id: string; name: string };
@@ -29,8 +30,11 @@ export default function MultiSelect({ label, options, value, onChange, hint }: {
       </button>
       {open && (
         <div className="ms-pop" id={uid} role="group" aria-label={label}>
+          <div className="voice-row">
           <input type="search" className="pick-search" value={q} autoFocus onChange={(e) => setQ(e.target.value)}
             placeholder={tr("Search") + "…"} aria-label={`${tr("Search")} ${label}`} />
+          <MicButton onText={setQ} />
+        </div>
           {hint && <p className="field-hint">{hint}</p>}
           <ul>
             {shown.map((o) => (

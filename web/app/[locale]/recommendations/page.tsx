@@ -1,12 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import ReadAloud from "../../components/ReadAloud";
+import Illustration from "../../components/Illustration";
 import { Link, useRouter } from "../../../i18n/navigation";
 import { useT } from "../../../i18n/useT";
 import { useLocale } from "next-intl";
 import Header from "../../components/Header";
 import Ring from "../../components/Ring";
+import ApplyHelp from "../../components/ApplyHelp";
 import { useToast } from "../../components/Toast";
+import { loadRecs, saveRecs } from "../../lib/offlineCache";
 import { api, ApiError, RecommendationsResponse } from "../../lib/api";
 
 export default function RecommendationsPage() {
@@ -18,11 +22,16 @@ export default function RecommendationsPage() {
   const [data, setData] = useState<RecommendationsResponse | null>(null);
   const [saved, setSaved] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [onlyMine, setOnlyMine] = useState(false);
+  const [offlineAt, setOfflineAt] = useState<number | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        setData(await api.recommendations(undefined, locale));
+        const fresh = await api.recommendations(undefined, locale, onlyMine);
+        setData(fresh);
+        setOfflineAt(null);
+        saveRecs(fresh, locale, onlyMine);
 
         setSaved(
           ((await api.saved()) as { internship_id: string }[]).map(
@@ -30,6 +39,10 @@ export default function RecommendationsPage() {
           )
         );
       } catch (e) {
+        if (e instanceof ApiError && e.code === "network") {
+          const cached = loadRecs<RecommendationsResponse>(locale, onlyMine);
+          if (cached) { setData(cached.data); setOfflineAt(cached.savedAt); return; }
+        }
         if (e instanceof ApiError && e.code === "profile_incomplete") {
           return router.replace("/profile");
         }
@@ -47,7 +60,7 @@ export default function RecommendationsPage() {
         setLoading(false);
       }
     })();
-  }, [router, show, locale]);
+  }, [router, show, locale, onlyMine]);
 
   const toggleSave = async (id: string) => {
     const on = saved.includes(id);
@@ -95,6 +108,7 @@ export default function RecommendationsPage() {
         {/* Recommendations Hero */}
         <div className="reco-hero card-rise">
           <div>
+            <Illustration name="results" className="login-hero" />
             <p className="profile-eyebrow">
               {tr("PERSONALISED FOR YOU")}
             </p>
@@ -105,6 +119,13 @@ export default function RecommendationsPage() {
               {data?.message ||
                 tr("Based on your education, skills and preferences.")}
             </p>
+
+            {data?.location_message && <p className="notice" role="status">ⓘ {data.location_message}</p>}
+
+            <label className="only-mine">
+              <input type="checkbox" checked={onlyMine} onChange={(e) => setOnlyMine(e.target.checked)} />
+              <span>{tr("Only my industries")}</span>
+            </label>
 
             <div className="reco-actions">
               <Link href="/saved" className="apply-btn">
@@ -133,6 +154,12 @@ export default function RecommendationsPage() {
             </div>
           </div>
         </div>
+
+        {offlineAt && (
+          <p className="field-hint" role="status">
+            {tr("You are offline. Showing results saved on this device.")} {new Date(offlineAt).toLocaleString(locale)}
+          </p>
+        )}
 
         {data?.demo_notice && (
           <p className="field-hint">{data.demo_notice}</p>
@@ -183,6 +210,22 @@ export default function RecommendationsPage() {
             </div>
           )}
 
+        {(data?.skill_unlocks?.length ?? 0) > 0 && (
+          <section className="skill-unlocks" aria-label={tr("Learn one skill, unlock more internships")}>
+            <h3>{tr("Learn one skill, unlock more internships")}</h3>
+            <div className="job-tags">
+              {data!.skill_unlocks!.slice(0, 5).map((u) => (
+                <span className="tag" key={u.skill_id}>
+                  {u.skill} · +{u.unlocks}
+                  {(u.course_links ?? []).map((c) => (
+                    <a key={c.provider} href={c.url} target="_blank" rel="noopener noreferrer" className="course-link" aria-label={`${tr("Free course")}: ${u.skill} (${c.provider})`}> · {c.provider}</a>
+                  ))}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Recommended Internships */}
         <div className="job-grid stagger">
           {recs.map((j) => (
@@ -207,6 +250,10 @@ export default function RecommendationsPage() {
 
                 {j.duration && <span className="tag">{j.duration}</span>}
 
+                {j.distance_km != null && j.distance_km > 0 && <span className="tag">{j.distance_km} km {tr("away")}</span>}
+
+                {j.tier === "near" && <span className="tag tag-warn">{tr(j.starter ? "Starter" : "Close match")}</span>}
+
                 {j.match_tag && <span className="tag">{j.match_tag}</span>}
 
                 {j.is_demo_data && (
@@ -215,6 +262,7 @@ export default function RecommendationsPage() {
               </div>
 
               <div style={{ marginTop: 16 }}>
+                <ReadAloud text={[j.title, j.company_name, j.location_name, ...j.why_recommended].filter(Boolean).join(". ")} />
                 <h4>{tr("Why this matches")}</h4>
 
                 {j.why_recommended.length > 0 ? (
@@ -288,6 +336,7 @@ export default function RecommendationsPage() {
                   </a>
                 </div>
               </div>
+              <ApplyHelp />
             </article>
           ))}
         </div>

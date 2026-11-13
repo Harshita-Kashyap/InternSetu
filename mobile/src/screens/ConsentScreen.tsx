@@ -1,3 +1,4 @@
+import { useSpeakable } from "../speak";
 import React, { useMemo, useState } from "react";
 import { useI18n } from "../i18n";
 import { StyleSheet, Text, View } from "react-native";
@@ -23,6 +24,8 @@ export default function ConsentScreen({ navigation }: Props) {
     try { await api.giveConsent(); navigation.reset({ index: 0, routes: [{ name: "Profile" }] }); }
     catch (e) { toast(e instanceof ApiError ? e.message : t("Could not save your consent.")); setLoading(false); }
   };
+  useSpeakable(t("Privacy notice"));
+
   return (
     <AuthLayout>
       <Text style={styles.h1}>{t("Privacy notice")}</Text>

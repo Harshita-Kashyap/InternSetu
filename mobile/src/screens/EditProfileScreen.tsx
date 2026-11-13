@@ -1,3 +1,4 @@
+import { useSpeakable } from "../speak";
 import React, { useEffect, useMemo, useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -7,6 +8,7 @@ import Field from "../components/Field";
 import Button from "../components/Button";
 import Choice from "../components/Choice";
 import TaxPicker from "../components/TaxPicker";
+import GroupedSkillPicker from "../components/GroupedSkillPicker";
 import PickOther from "../components/PickOther";
 import { useToast } from "../components/Toast";
 import { useSetupStyles } from "./SetupLayout";
@@ -28,7 +30,7 @@ export default function EditProfileScreen({ navigation }: Props) {
   const { t } = useI18n();
   const toast = useToast();
   const edu = useTax("education_level"), degs = useTax("degree"), flds = useTax("field_of_study");
-  const sk = useTax("skill"), it = useTax("interest"), city = useTax("city"), sec = useTax("sector");
+  const sk = useTax("skill"), cats = useTax("skill_category"), city = useTax("city"), sec = useTax("sector");
   const levels = edu.names.length ? edu.names : educationLevels;
   const [orig, setOrig] = useState<Profile | null>(null);
   const [p, setP] = useState<Profile>({});
@@ -60,9 +62,10 @@ export default function EditProfileScreen({ navigation }: Props) {
   const modes: { id: Mode; label: string; sub: string }[] = [
     { id: "nearby", label: t("Nearby only"), sub: t("Opportunities in or close to my city") },
     { id: "selected", label: t("Selected cities"), sub: t("My city plus cities I choose") },
-    { id: "anywhere", label: t("Anywhere in India"), sub: t("I am willing to relocate") },
+    { id: "anywhere", label: t("Anywhere in India"), sub: t("I can move to another city") },
   ];
 
+  useSpeakable(`${t("Update your profile")}. ${t("Change anything below, then press Save changes. Your saved details are already filled in.")}`);
   return (
     <View style={{ flex: 1, backgroundColor: colors.cream }}>
       <Header />
@@ -89,10 +92,7 @@ export default function EditProfileScreen({ navigation }: Props) {
           <View style={styles.section}>
             <Text style={styles.legend}>{t("Skills")}</Text>
             <Text style={s.count}>{p.skills?.length ?? 0} {t("selected")}</Text>
-            <TaxPicker options={sk.names} loading={sk.loading} selected={p.skills ?? []} onChange={(v) => set("skills", v)} placeholder={t("Search skills (e.g. Python)")} />
-            <Text style={[s.h2, { marginTop: 18 }]}>{t("Interests")}</Text>
-            <Text style={s.count}>{p.interests?.length ?? 0} {t("selected")}</Text>
-            <TaxPicker options={it.names} loading={it.loading} selected={p.interests ?? []} onChange={(v) => set("interests", v)} placeholder={t("Search interests")} />
+            <GroupedSkillPicker skills={sk.items} categories={cats.items} loading={sk.loading} selected={p.skills ?? []} onChange={(v) => set("skills", v)} placeholder={t("Search skills (e.g. Python)")} />
           </View>
 
           <View style={styles.section}>
@@ -125,10 +125,10 @@ const makeStyles = (colors: Colors) => StyleSheet.create({
   eyebrow: { color: colors.teal, fontSize: 12, fontFamily: fonts.bold, letterSpacing: 1.5, marginTop: 6 },
   h1: { fontSize: 28, fontFamily: fonts.headXL, color: colors.text, letterSpacing: -0.8, marginTop: 6 },
   sub: { fontSize: 14, color: colors.muted, fontFamily: fonts.body, lineHeight: 21, marginTop: 8, marginBottom: 14 },
-  section: { backgroundColor: colors.white, borderRadius: 20, borderWidth: 1, borderColor: colors.border, padding: 16, marginTop: 14, ...shadow },
+  section: { backgroundColor: colors.white, borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 16, marginTop: 14, ...shadow },
   legend: { fontSize: 15, fontFamily: fonts.bold, color: colors.teal, marginBottom: 12 },
   levels: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 18 },
-  pill: { paddingVertical: 10, paddingHorizontal: 15, borderRadius: 10, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.creamLight },
+  pill: { paddingVertical: 10, paddingHorizontal: 15, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.creamLight },
   pillOn: { backgroundColor: colors.teal, borderColor: colors.teal },
   pillTxt: { fontSize: 13.5, fontFamily: fonts.semibold, color: colors.text },
   bar: { position: "absolute", left: 0, right: 0, bottom: 0, flexDirection: "row", gap: 10, padding: 14, paddingBottom: 22, backgroundColor: colors.white, borderTopWidth: 1, borderTopColor: colors.border },

@@ -11,7 +11,7 @@ SCALAR_TYPES = {  # field -> taxonomy type it must point to
     "home_location_id": "city",
 }
 LIST_FIELDS = {  # field -> (taxonomy type, link kind)
-    "skill_ids": ("skill", "skill"), "interest_ids": ("interest", "interest"),
+    "skill_ids": ("skill", "skill"),
     "preferred_role_ids": ("role", "preferred_role"), "preferred_sector_ids": ("sector", "preferred_sector"),
     "preferred_location_ids": ("city", "preferred_location"),
 }
@@ -108,7 +108,7 @@ def to_response(p: CandidateProfile) -> ProfileResponse:
     return ProfileResponse(
         status=p.status, missing_fields=missing_fields(p),
         education_level_id=p.education_level_id, degree_id=p.degree_id, field_of_study_id=p.field_of_study_id,
-        year_of_completion=p.year_of_completion, skill_ids=ids("skill"), interest_ids=ids("interest"),
+        year_of_completion=p.year_of_completion, skill_ids=ids("skill"),
         preferred_role_ids=ids("preferred_role"), preferred_sector_ids=ids("preferred_sector"),
         home_location_id=p.home_location_id, preferred_location_ids=ids("preferred_location"),
         degree_other=p.degree_other, field_of_study_other=p.field_of_study_other,

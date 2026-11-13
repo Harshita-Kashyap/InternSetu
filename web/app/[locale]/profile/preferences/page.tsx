@@ -6,6 +6,8 @@ import { useRouter } from "../../../../i18n/navigation";
 import Header from "../../../components/Header";
 import SelectOther from "../../../components/SelectOther";
 import Stepper from "../../../components/Stepper";
+import StepHero from "../../../components/StepHero";
+import Illustration from "../../../components/Illustration";
 import ChipPicker from "../../../components/ChipPicker";
 import { useToast } from "../../../components/Toast";
 import { loadProfileRemote, saveProfileRemote, Profile } from "../../../lib/store";
@@ -52,10 +54,10 @@ export default function PreferencesPage() {
     }
   };
 
-  const modes: { id: Mode; title: string; hint: string }[] = [
-    { id: "nearby", title: tr("Nearby only"), hint: tr("Opportunities in or close to my city") },
-    { id: "selected", title: tr("Selected cities"), hint: tr("My city plus cities I choose") },
-    { id: "anywhere", title: tr("Anywhere in India"), hint: tr("I am willing to relocate") },
+  const modes: { id: Mode; title: string; hint: string; icon: string }[] = [
+    { id: "nearby", icon: "🏠", title: tr("Nearby only"), hint: tr("Opportunities in or close to my city") },
+    { id: "selected", icon: "📍", title: tr("Selected cities"), hint: tr("My city plus cities I choose") },
+    { id: "anywhere", icon: "🇮🇳", title: tr("Anywhere in India"), hint: tr("I can move to another city") },
   ];
 
   return (
@@ -63,11 +65,7 @@ export default function PreferencesPage() {
       <Header />
       <section className="profile-container">
         <div className="profile-card preferences-card card-rise">
-          <div className="profile-intro">
-            <p className="profile-eyebrow">{tr("STEP 3 OF 3")}</p>
-            <h1>{tr("Where would you like to work?")}</h1>
-            <p>{tr("Location is a preference, not a rule: internships elsewhere can still match, they just score a little lower.")}</p>
-          </div>
+          <StepHero art="location" eyebrow={tr("STEP 3 OF 3")} title={tr("Where would you like to work?")} text={tr("Location is a preference, not a rule: internships elsewhere can still match, they just score a little lower.")} />
           <Stepper current={3} />
 
           <div className="preferences-form">
@@ -78,12 +76,11 @@ export default function PreferencesPage() {
                 <h2>{tr("How far are you willing to go?")}</h2>
                 <p>{tr("This decides how much location affects your matches.")}</p>
               </div>
-              <div className="choice-grid three" role="radiogroup" aria-label={tr("Location preference")}>
+              <div className="icon-grid" role="radiogroup" aria-label={tr("Location preference")}>
                 {modes.map((m) => (
-                  <button key={m.id} type="button" role="radio" aria-checked={mode === m.id}
-                    className={`choice-card ${mode === m.id ? "selected" : ""}`} onClick={() => setMode(m.id)}>
-                    <span className="choice-radio">{mode === m.id ? "✓" : ""}</span>
-                    <span><strong>{m.title}</strong><small>{m.hint}</small></span>
+                  <button key={m.id} type="button" role="radio" aria-checked={mode === m.id} className={`icon-tile ${mode === m.id ? "selected" : ""}`} onClick={() => setMode(m.id)}>
+                    <span className="icon-emoji" aria-hidden="true">{m.icon}</span>
+                    <strong>{m.title}</strong><small>{m.hint}</small>
                   </button>
                 ))}
               </div>
@@ -94,6 +91,7 @@ export default function PreferencesPage() {
                 options={cities.filter((c) => c !== home)} selected={extra} onToggle={flip(setExtra)} />
             )}
 
+            <Illustration name="sector" className="login-hero" />
             <ChipPicker kind="skill" title={tr("Preferred domains")} hint={tr("Select the areas you would like to explore.")}
               options={domains} selected={picked} onToggle={flip(setPicked)} />
           </div>

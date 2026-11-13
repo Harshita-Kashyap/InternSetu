@@ -1,5 +1,8 @@
+import { useSpeakable } from "../speak";
 import React, { useMemo, useCallback, useEffect, useState } from "react";
 import { useI18n } from "../i18n";
+import Illustration from "../components/Illustration";
+import ReadAloudButton from "../components/ReadAloudButton";
 import { ActivityIndicator, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -8,8 +11,10 @@ import Header from "../components/Header";
 import FadeIn from "../components/FadeIn";
 import Ring from "../components/Ring";
 import Button from "../components/Button";
+import ApplyHelp from "../components/ApplyHelp";
 import { useToast } from "../components/Toast";
-import { api, ApiError, RecommendationsResponse } from "../api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { api, ApiError, RecommendationsResponse, RECS_CACHE_KEY } from "../api";
 import { useTheme, Colors, fonts, shadow } from "../theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Recommendations">;
@@ -24,20 +29,30 @@ export default function RecommendationsScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [onlyMine, setOnlyMine] = useState(false);
+  const [offlineAt, setOfflineAt] = useState<number | null>(null);
 
   const load = useCallback(async (pull = false) => {
     pull ? setRefreshing(true) : setLoading(true);
     setError(null);
     try {
-      const [r, s] = await Promise.all([api.recommendations(undefined, lang), api.saved().catch(() => [])]);
+      const [r, s] = await Promise.all([api.recommendations(undefined, lang, onlyMine), api.saved().catch(() => [])]);
       setData(r);
+      setOfflineAt(null);
       setSaved(s.map((x) => x.internship_id));
+      AsyncStorage.setItem(RECS_CACHE_KEY, JSON.stringify({ lang, onlyMine, savedAt: Date.now(), data: r })).catch(() => {});
     } catch (e) {
+      if (e instanceof ApiError && e.code === "network") {
+        try {
+          const c = JSON.parse((await AsyncStorage.getItem(RECS_CACHE_KEY)) || "null");
+          if (c && c.lang === lang && c.onlyMine === onlyMine) { setData(c.data); setOfflineAt(c.savedAt); return; }
+        } catch { /* no usable saved copy */ }
+      }
       if (e instanceof ApiError && e.code === "profile_incomplete") { toast(t("Please complete your profile first.")); navigation.reset({ index: 0, routes: [{ name: "Profile" }] }); return; }
       if (e instanceof ApiError && e.code === "consent_required") { navigation.reset({ index: 0, routes: [{ name: "Consent" }] }); return; }
       setError(e instanceof ApiError ? e.message : t("Could not load recommendations."));
     } finally { setLoading(false); setRefreshing(false); }
-  }, [navigation, toast, lang]);
+  }, [navigation, toast, lang, onlyMine]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -51,7 +66,8 @@ export default function RecommendationsScreen({ navigation }: Props) {
 
   const recs = data?.recommendations ?? [];
   const best = recs.length ? Math.max(...recs.map((r) => r.match_percentage)) : 0;
-
+
+  useSpeakable(`${t("Your internship matches")}. ${t("Based on your education, skills and preferences.")}`);
   return (
     <View style={{ flex: 1, backgroundColor: colors.cream }}>
       <Header />
@@ -59,9 +75,14 @@ export default function RecommendationsScreen({ navigation }: Props) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={colors.teal} />}>
         <FadeIn>
           <LinearGradient colors={["#1d565d", "#256b73", "#3c8a8a"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+            <Illustration name="results" width={190} />
             <Text style={styles.eyebrow}>{t("PERSONALISED FOR YOU")}</Text>
             <Text style={styles.h1}>{t("Your internship matches")}</Text>
-            <Text style={styles.heroSub}>{t("Ranked by skills, education, location and interests, with reasons for each match.")}</Text>
+            <Text style={styles.heroSub}>{t("Ranked by skills, education, location and industry, with reasons for each match.")}</Text>
+            <Pressable onPress={() => setOnlyMine(!onlyMine)} accessibilityRole="switch" accessibilityState={{ checked: onlyMine }} style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44 }}>
+              <Text style={{ color: "#fff", fontSize: 20 }}>{onlyMine ? "☑" : "☐"}</Text>
+              <Text style={{ color: "#fff", fontSize: 14 }}>{t("Only my industries")}</Text>
+            </Pressable>
             <View style={styles.stats}>
               {[[data?.eligible_count ?? "–", "Eligible"], [recs.length, "Top picks"], [best ? `${best}%` : "–", "Best match"]].map(([n, l]) => (
                 <View key={l as string} style={styles.stat}><Text style={styles.statN}>{n}</Text><Text style={styles.statL}>{t(l as string)}</Text></View>
@@ -85,6 +106,8 @@ export default function RecommendationsScreen({ navigation }: Props) {
           </View>
         ) : null}
 
+        {data?.location_message ? <View style={styles.demo}><Text style={styles.demoTxt}>ⓘ {data.location_message}</Text></View> : null}
+        {offlineAt ? <View style={styles.demo}><Text style={styles.demoTxt}>{t("You are offline. Showing results saved on this device.")} {new Date(offlineAt).toLocaleString()}</Text></View> : null}
         {data?.demo_notice ? <View style={styles.demo}><Text style={styles.demoTxt}>{data.demo_notice}</Text></View> : null}
         {data && !recs.length && !error ? (
           <View style={styles.panel}>
@@ -118,9 +141,12 @@ export default function RecommendationsScreen({ navigation }: Props) {
                 <Text style={[styles.tag, styles.tagDomain]}>{j.sector_name}</Text>
                 {j.role_name ? <Text style={styles.tag}>{j.role_name}</Text> : null}
                 {j.duration ? <Text style={styles.tag}>{j.duration}</Text> : null}
+                {j.distance_km != null && j.distance_km > 0 ? <Text style={styles.tag}>{j.distance_km} km {t("away")}</Text> : null}
+                {j.tier === "near" ? <Text style={[styles.tag, { color: colors.warn }]}>{t(j.starter ? "Starter" : "Close match")}</Text> : null}
                 {j.match_tag ? <Text style={styles.tag}>{j.match_tag}</Text> : null}
                 {j.is_demo_data ? <Text style={styles.tag}>{t("Demo data")}</Text> : null}
               </View>
+              <ReadAloudButton text={[j.title, j.company_name, j.location_name, ...j.why_recommended].filter(Boolean).join(". ")} />
               {j.why_recommended.length ? (
                 <View style={styles.block}>
                   <Text style={styles.blockH}>{t("Why recommended")}</Text>
@@ -148,6 +174,7 @@ export default function RecommendationsScreen({ navigation }: Props) {
                   <Pressable onPress={() => apply(j.apply_url)} style={styles.apply}><Text style={styles.applyTxt}>{t("Apply on PMIS")}</Text></Pressable>
                 </View>
               </View>
+              <ApplyHelp />
             </FadeIn>
           );
         })}
@@ -159,6 +186,22 @@ export default function RecommendationsScreen({ navigation }: Props) {
           </View>
         ) : null}
 
+        {data?.skill_unlocks?.length ? (
+          <View style={styles.panel}>
+            <Text style={styles.panelH}>{t("Learn one skill, unlock more internships")}</Text>
+            {data.skill_unlocks.slice(0, 5).map((u) => (
+              <View key={u.skill_id} style={{ marginTop: 8 }}>
+                <Text style={styles.skill}>{u.skill} · +{u.unlocks}</Text>
+                <View style={{ flexDirection: "row", gap: 16, minHeight: 44, alignItems: "center" }}>
+                  {(u.course_links ?? []).map((c) => (
+                    <Text key={c.provider} style={[styles.skill, { textDecorationLine: "underline" }]} accessibilityRole="link" accessibilityLabel={`${t("Free course")}: ${u.skill} (${c.provider})`} onPress={() => Linking.openURL(c.url)}>{t("Free course")} · {c.provider}</Text>
+                  ))}
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
         {data ? <Text style={styles.disclaimer}>{data.disclaimer}</Text> : null}
       </ScrollView>
     </View>
@@ -166,12 +209,12 @@ export default function RecommendationsScreen({ navigation }: Props) {
 }
 
 const makeStyles = (colors: Colors) => { const card = { backgroundColor: colors.white, borderRadius: 18, borderWidth: 1, borderColor: "rgba(37,107,115,0.1)" } as const; return StyleSheet.create({
-  hero: { borderRadius: 20, padding: 22, ...shadow },
+  hero: { borderRadius: 16, padding: 22, ...shadow },
   eyebrow: { color: "#cfe8e6", fontSize: 12, fontFamily: fonts.bold, letterSpacing: 1.5 },
   h1: { color: "#fff", fontSize: 28, fontFamily: fonts.headXL, letterSpacing: -0.8, marginTop: 8 },
   heroSub: { color: "#d9ecea", fontSize: 14, lineHeight: 21, marginTop: 8, fontFamily: fonts.body },
   stats: { flexDirection: "row", gap: 10, marginTop: 18 },
-  stat: { flex: 1, backgroundColor: "rgba(255,255,255,0.14)", borderRadius: 14, paddingVertical: 12, alignItems: "center" },
+  stat: { flex: 1, backgroundColor: "rgba(255,255,255,0.14)", borderRadius: 12, paddingVertical: 12, alignItems: "center" },
   statN: { color: "#fff", fontSize: 24, fontFamily: fonts.headXL },
   statL: { color: "#d9ecea", fontSize: 11, fontFamily: fonts.body, marginTop: 2 },
   heroBtns: { flexDirection: "row", gap: 10, marginTop: 16 },
@@ -181,8 +224,8 @@ const makeStyles = (colors: Colors) => { const card = { backgroundColor: colors.
   panelH: { fontSize: 16, fontFamily: fonts.bold, color: colors.text, marginBottom: 14 },
   barRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10 },
   barLabel: { width: 92, fontSize: 13, fontFamily: fonts.semibold, color: colors.text },
-  bar: { flex: 1, height: 10, borderRadius: 10, backgroundColor: colors.track, overflow: "hidden" },
-  barFill: { height: "100%", borderRadius: 10, backgroundColor: colors.teal },
+  bar: { flex: 1, height: 10, borderRadius: 12, backgroundColor: colors.track, overflow: "hidden" },
+  barFill: { height: "100%", borderRadius: 12, backgroundColor: colors.teal },
   barVal: { width: 40, textAlign: "right", fontSize: 13, fontFamily: fonts.bold, color: colors.tealDark },
   note: { fontSize: 13, color: colors.muted, lineHeight: 19, fontFamily: fonts.body, marginTop: 4 },
   near: { marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.divider },
@@ -209,8 +252,8 @@ const makeStyles = (colors: Colors) => { const card = { backgroundColor: colors.
   skillHave: { borderStyle: "solid", borderColor: colors.tealBorder, backgroundColor: colors.tealLight, color: colors.tealDark, fontFamily: fonts.semibold },
   bottom: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 16, paddingTop: 14, borderTopWidth: 1, borderTopColor: colors.divider },
   stipend: { fontSize: 14, fontFamily: fonts.bold, color: colors.text },
-  save: { width: 38, height: 38, borderRadius: 10, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" },
+  save: { width: 38, height: 38, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" },
   saveOn: { borderColor: colors.danger, backgroundColor: colors.dangerBg },
-  apply: { height: 38, paddingHorizontal: 20, borderRadius: 10, backgroundColor: colors.teal, alignItems: "center", justifyContent: "center" },
+  apply: { height: 38, paddingHorizontal: 20, borderRadius: 12, backgroundColor: colors.teal, alignItems: "center", justifyContent: "center" },
   applyTxt: { color: "#fff", fontSize: 13, fontFamily: fonts.bold },
 }); };

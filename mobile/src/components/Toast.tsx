@@ -2,6 +2,7 @@ import React, { useMemo, createContext, useCallback, useContext, useRef, useStat
 import { Animated, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, Colors, fonts } from "../theme";
+import { useI18n } from "../i18n";
 
 type Kind = "error" | "success";
 const Ctx = createContext<(msg: string, kind?: Kind) => void>(() => {});
@@ -11,13 +12,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
+  const { t } = useI18n();
+  const tRef = useRef(t);
+  tRef.current = t;
   const [msg, setMsg] = useState("");
   const [kind, setKind] = useState<Kind>("error");
   const v = useRef(new Animated.Value(0)).current;
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const show = useCallback((m: string, k: Kind = "error") => {
-    setMsg(m);
+    setMsg(tRef.current(m));
     setKind(k);
     if (timer.current) clearTimeout(timer.current);
     Animated.timing(v, { toValue: 1, duration: 220, useNativeDriver: true }).start();

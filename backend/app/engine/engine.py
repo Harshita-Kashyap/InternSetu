@@ -17,6 +17,10 @@ from .semantic.scorers import (DEFAULT_HYBRID_WEIGHTS, EmbeddingScorer, HybridSc
                                TfidfScorer)
 from .taxonomy import Taxonomy
 
+STARTER_MESSAGE = ("These are starting points: you need a few more skills for each one. "
+                   "Learn them step by step.")
+CLOSE_MESSAGE = ("These are close matches: you need 1-2 more skills for each one. "
+                 "Learn them to qualify.")
 METHODS = ("hybrid", "baseline", "tfidf", "semantic")
 ADDED_FILE = Path(os.environ.get("INTERNSETU_ADDED_FILE", DATA / "internships" / "added_internships.json"))
 
@@ -89,7 +93,7 @@ class RecommendationEngine:
                                   "semantic": self._semantic is not None}}
 
     # ---------------------------------------------------------------- recommend
-    def recommend(self, profile, k=MAX_K, method="hybrid"):
+    def recommend(self, profile, k=MAX_K, method="hybrid", include_near=False, only_sectors=False):
         """Validate `profile`, then return up to k ranked recommendations (empty list if none are eligible)."""
         if method not in METHODS:
             raise InputError([f"'method' must be one of: {', '.join(METHODS)}."])
@@ -98,16 +102,20 @@ class RecommendationEngine:
         cand = normalize_profile(profile, self.tax)
         with self._lock:
             eligible_n = sum(check_eligibility(cand, i, self.tax)[0] for i in self.internships.values())
-            recs = Recommender(self.internships, self.tax, self._scorer(method), k).recommend(cand) \
-                if eligible_n else []
+            recs = Recommender(self.internships, self.tax, self._scorer(method), k).recommend(
+                cand, include_near=include_near, only_sectors=only_sectors) if (eligible_n or include_near) else []
             for r in recs:
                 r["location_name"] = self.tax.city_name.get(r["location"], r["location"])
         message = None
         if not recs:
-            message = ("No eligible internships were found. Eligibility needs ALL mandatory skills and at least "
-                       "the required education level, so nothing in the catalog currently qualifies for this profile.")
+            message = ("No internship fits this profile yet. To qualify you need all the must-have skills and at least "
+                       "the education level they ask for.")
+        elif any(r.get("starter") for r in recs):
+            message = STARTER_MESSAGE
+        elif any(r.get("tier") == "near" for r in recs):
+            message = CLOSE_MESSAGE
         elif len(recs) < MIN_K:
-            message = f"Only {len(recs)} eligible internship(s) found, so fewer than {MIN_K} are returned."
+            message = f"Only {len(recs)} internship(s) fit you fully, so fewer than {MIN_K} are shown."
         return {"candidate_id": cand["candidate_id"], "method": method, "k": k,
                 "eligible_internships_in_catalog": eligible_n, "count": len(recs),
                 "message": message, "recommendations": recs}

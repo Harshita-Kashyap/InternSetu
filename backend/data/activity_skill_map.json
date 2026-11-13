@@ -1,0 +1,947 @@
+{
+ "version": "1.0",
+ "activities": [
+  {
+   "id": "ACT-001",
+   "icon": "🌾",
+   "label": {
+    "en": "Worked on a farm",
+    "hi": "खेत में काम किया",
+    "mr": "शेतात काम केले",
+    "bn": "খামারে কাজ করেছি"
+   },
+   "skill_ids": [
+    "SK-EVERY-001",
+    "SK-AGRI-001"
+   ]
+  },
+  {
+   "id": "ACT-002",
+   "icon": "🐄",
+   "label": {
+    "en": "Looked after cattle or milk work",
+    "hi": "पशुओं या दूध का काम किया",
+    "mr": "जनावरांची किंवा दुधाची कामे केली",
+    "bn": "গবাদি পশুর যত্ন বা দুধের কাজ করেছি"
+   },
+   "skill_ids": [
+    "SK-EVERY-002",
+    "SK-AGRI-008"
+   ]
+  },
+  {
+   "id": "ACT-003",
+   "icon": "🚜",
+   "label": {
+    "en": "Drove a tractor or ran a water pump",
+    "hi": "ट्रैक्टर या पानी का पंप चलाया",
+    "mr": "ट्रॅक्टर किंवा पाण्याचा पंप चालवला",
+    "bn": "ট্রাক্টর চালিয়েছি বা পানির পাম্প চালিয়েছি"
+   },
+   "skill_ids": [
+    "SK-EVERY-003"
+   ]
+  },
+  {
+   "id": "ACT-004",
+   "icon": "🏪",
+   "label": {
+    "en": "Helped in a shop",
+    "hi": "दुकान पर काम किया",
+    "mr": "दुकानात मदत केली",
+    "bn": "দোকানে সাহায্য করেছি"
+   },
+   "skill_ids": [
+    "SK-EVERY-004",
+    "SK-SALES-005",
+    "SK-EVERY-014"
+   ]
+  },
+  {
+   "id": "ACT-005",
+   "icon": "🧵",
+   "label": {
+    "en": "Stitched clothes",
+    "hi": "कपड़े सिले",
+    "mr": "कपडे शिवले",
+    "bn": "জামাকাপড় সেলাই করেছি"
+   },
+   "skill_ids": [
+    "SK-EVERY-005"
+   ]
+  },
+  {
+   "id": "ACT-006",
+   "icon": "🧶",
+   "label": {
+    "en": "Weaving or handicraft",
+    "hi": "बुनाई या हस्तशिल्प",
+    "mr": "विणकाम किंवा हस्तकला",
+    "bn": "তাঁত বা হস্তশিল্পের কাজ করেছি"
+   },
+   "skill_ids": [
+    "SK-EVERY-012"
+   ]
+  },
+  {
+   "id": "ACT-007",
+   "icon": "🚗",
+   "label": {
+    "en": "Drove a car, auto or bike for work",
+    "hi": "काम के लिए गाड़ी या बाइक चलाई",
+    "mr": "कामासाठी गाडी किंवा बाइक चालवली",
+    "bn": "কাজের জন্য গাড়ি, অটো বা বাইক চালিয়েছি"
+   },
+   "skill_ids": [
+    "SK-EVERY-006"
+   ]
+  },
+  {
+   "id": "ACT-008",
+   "icon": "📱",
+   "label": {
+    "en": "Used UPI and mobile payments",
+    "hi": "UPI और मोबाइल पेमेंट इस्तेमाल किया",
+    "mr": "UPI आणि मोबाइल पेमेंट वापरले",
+    "bn": "UPI ও মোবাইল পেমেন্ট ব্যবহার করেছি"
+   },
+   "skill_ids": [
+    "SK-EVERY-007"
+   ]
+  },
+  {
+   "id": "ACT-009",
+   "icon": "🍳",
+   "label": {
+    "en": "Cooked for many people",
+    "hi": "कई लोगों के लिए खाना बनाया",
+    "mr": "अनेक लोकांसाठी स्वयंपाक केला",
+    "bn": "অনেক মানুষের জন্য রান্না করেছি"
+   },
+   "skill_ids": [
+    "SK-EVERY-008"
+   ]
+  },
+  {
+   "id": "ACT-010",
+   "icon": "💡",
+   "label": {
+    "en": "Fixed electrical wiring",
+    "hi": "बिजली की वायरिंग ठीक की",
+    "mr": "विजेची वायरिंग दुरुस्त केली",
+    "bn": "বৈদ্যুতিক তার সারিয়েছি"
+   },
+   "skill_ids": [
+    "SK-EVERY-009",
+    "SK-ELEC-006"
+   ]
+  },
+  {
+   "id": "ACT-011",
+   "icon": "🚰",
+   "label": {
+    "en": "Fixed taps or pipes",
+    "hi": "नल या पाइप ठीक किए",
+    "mr": "नळ किंवा पाइप दुरुस्त केले",
+    "bn": "কল বা পাইপ সারিয়েছি"
+   },
+   "skill_ids": [
+    "SK-EVERY-010"
+   ]
+  },
+  {
+   "id": "ACT-012",
+   "icon": "🪚",
+   "label": {
+    "en": "Did wood work",
+    "hi": "लकड़ी का काम किया",
+    "mr": "लाकडाचे काम केले",
+    "bn": "কাঠের কাজ করেছি"
+   },
+   "skill_ids": [
+    "SK-EVERY-011"
+   ]
+  },
+  {
+   "id": "ACT-013",
+   "icon": "📦",
+   "label": {
+    "en": "Loaded, packed or moved goods",
+    "hi": "सामान चढ़ाया, पैक किया या पहुँचाया",
+    "mr": "माल चढवला, पॅक केला किंवा पोहोचवला",
+    "bn": "মাল তুলেছি, প্যাক করেছি বা সরিয়েছি"
+   },
+   "skill_ids": [
+    "SK-EVERY-013"
+   ]
+  },
+  {
+   "id": "ACT-014",
+   "icon": "📒",
+   "label": {
+    "en": "Kept accounts or counted cash",
+    "hi": "हिसाब रखा या नकद गिना",
+    "mr": "हिशोब ठेवला किंवा रोख मोजली",
+    "bn": "হিসাব রেখেছি বা নগদ টাকা গুনেছি"
+   },
+   "skill_ids": [
+    "SK-EVERY-014",
+    "SK-FIN-002"
+   ]
+  },
+  {
+   "id": "ACT-015",
+   "icon": "⌨️",
+   "label": {
+    "en": "Typed or entered data on a computer",
+    "hi": "कंप्यूटर पर टाइपिंग या डेटा एंट्री की",
+    "mr": "संगणकावर टायपिंग किंवा डेटा एंट्री केली",
+    "bn": "কম্পিউটারে টাইপ করেছি বা তথ্য ঢুকিয়েছি"
+   },
+   "skill_ids": [
+    "SK-EVERY-015",
+    "SK-OFFICE-006"
+   ]
+  },
+  {
+   "id": "ACT-016",
+   "icon": "🔧",
+   "label": {
+    "en": "Repaired mobile phones",
+    "hi": "मोबाइल फोन ठीक किए",
+    "mr": "मोबाइल फोन दुरुस्त केले",
+    "bn": "মোবাইল ফোন সারিয়েছি"
+   },
+   "skill_ids": [
+    "SK-EVERY-016"
+   ]
+  },
+  {
+   "id": "ACT-017",
+   "icon": "🛠️",
+   "label": {
+    "en": "Repaired machines",
+    "hi": "मशीनें ठीक कीं",
+    "mr": "यंत्रे दुरुस्त केली",
+    "bn": "যন্ত্র সারিয়েছি"
+   },
+   "skill_ids": [
+    "SK-ENGG-014"
+   ]
+  },
+  {
+   "id": "ACT-018",
+   "icon": "🏘️",
+   "label": {
+    "en": "Worked with people in my village",
+    "hi": "गाँव में लोगों के साथ काम किया",
+    "mr": "गावात लोकांसोबत काम केले",
+    "bn": "আমার গ্রামের মানুষের সঙ্গে কাজ করেছি"
+   },
+   "skill_ids": [
+    "SK-EVERY-017",
+    "SK-GOV-002"
+   ]
+  },
+  {
+   "id": "ACT-019",
+   "icon": "🩹",
+   "label": {
+    "en": "Gave first aid or cared for the sick",
+    "hi": "प्राथमिक उपचार दिया या बीमारों की देखभाल की",
+    "mr": "प्रथमोपचार दिला किंवा आजारी लोकांची काळजी घेतली",
+    "bn": "প্রাথমিক চিকিৎসা দিয়েছি বা অসুস্থদের যত্ন নিয়েছি"
+   },
+   "skill_ids": [
+    "SK-HEALTH-004",
+    "SK-HEALTH-001"
+   ]
+  },
+  {
+   "id": "ACT-020",
+   "icon": "🧑‍💼",
+   "label": {
+    "en": "Talked to customers",
+    "hi": "ग्राहकों से बात की",
+    "mr": "ग्राहकांशी बोललो",
+    "bn": "গ্রাহকদের সঙ্গে কথা বলেছি"
+   },
+   "skill_ids": [
+    "SK-CUST-001",
+    "SK-COMM-002"
+   ]
+  },
+  {
+   "id": "ACT-021",
+   "icon": "⛽",
+   "label": {
+    "en": "Worked at a petrol pump",
+    "hi": "पेट्रोल पंप पर काम किया",
+    "mr": "पेट्रोल पंपावर काम केले",
+    "bn": "পেট্রল পাম্পে কাজ করেছি"
+   },
+   "skill_ids": [
+    "SK-OILGAS-002",
+    "SK-OILGAS-001"
+   ]
+  },
+  {
+   "id": "ACT-022",
+   "icon": "🔥",
+   "label": {
+    "en": "Delivered gas cylinders",
+    "hi": "गैस सिलेंडर पहुँचाए",
+    "mr": "गॅस सिलिंडर पोहोचवले",
+    "bn": "গ্যাস সিলিন্ডার পৌঁছে দিয়েছি"
+   },
+   "skill_ids": [
+    "SK-OILGAS-003"
+   ]
+  },
+  {
+   "id": "ACT-023",
+   "icon": "🦺",
+   "label": {
+    "en": "Worked on a site with safety gear",
+    "hi": "सुरक्षा उपकरणों के साथ साइट पर काम किया",
+    "mr": "सुरक्षा साधनांसह साइटवर काम केले",
+    "bn": "নিরাপত্তা সরঞ্জাম পরে সাইটে কাজ করেছি"
+   },
+   "skill_ids": [
+    "SK-OILGAS-001",
+    "SK-OILGAS-007",
+    "SK-CIVIL-010"
+   ]
+  },
+  {
+   "id": "ACT-024",
+   "icon": "☀️",
+   "label": {
+    "en": "Installed solar or electrical equipment",
+    "hi": "सोलर या बिजली के उपकरण लगाए",
+    "mr": "सोलर किंवा विद्युत उपकरणे बसवली",
+    "bn": "সোলার বা বৈদ্যুতিক সরঞ্জাম বসিয়েছি"
+   },
+   "skill_ids": [
+    "SK-ELEC-006",
+    "SK-ELEC-010"
+   ]
+  },
+  {
+   "id": "ACT-025",
+   "icon": "💻",
+   "label": {
+    "en": "Built a website or app",
+    "hi": "वेबसाइट या ऐप बनाया",
+    "mr": "वेबसाइट किंवा अ‍ॅप बनवले",
+    "bn": "ওয়েবসাইট বা অ্যাপ বানিয়েছি"
+   },
+   "skill_ids": [
+    "SK-PROG-001",
+    "SK-PROG-006",
+    "SK-PROG-013",
+    "SK-WEB-006",
+    "SK-WEB-007",
+    "SK-WEB-005",
+    "SK-WEB-012",
+    "SK-WEB-013"
+   ]
+  },
+  {
+   "id": "ACT-026",
+   "icon": "📊",
+   "label": {
+    "en": "Used Excel or Google Sheets",
+    "hi": "Excel या Google Sheets इस्तेमाल किया",
+    "mr": "Excel किंवा Google Sheets वापरले",
+    "bn": "Excel বা Google Sheets ব্যবহার করেছি"
+   },
+   "skill_ids": [
+    "SK-OFFICE-003"
+   ]
+  },
+  {
+   "id": "ACT-027",
+   "icon": "🗣️",
+   "label": {
+    "en": "Spoke Hindi or a local language at work",
+    "hi": "काम पर हिंदी या स्थानीय भाषा बोली",
+    "mr": "कामावर हिंदी किंवा स्थानिक भाषा बोललो",
+    "bn": "কাজে হিন্দি বা স্থানীয় ভাষায় কথা বলেছি"
+   },
+   "skill_ids": [
+    "SK-LANG-001",
+    "SK-LANG-003"
+   ]
+  },
+  {
+   "id": "ACT-028",
+   "icon": "🧹",
+   "label": {
+    "en": "Cleaned and looked after guest rooms",
+    "hi": "मेहमानों के कमरे साफ़ किए और संभाले",
+    "mr": "पाहुण्यांच्या खोल्या स्वच्छ केल्या व सांभाळल्या",
+    "bn": "অতিথিদের ঘর পরিষ্কার ও গুছিয়ে রেখেছি"
+   },
+   "skill_ids": [
+    "SK-HOSP-002"
+   ]
+  },
+  {
+   "id": "ACT-029",
+   "icon": "✍️",
+   "label": {
+    "en": "Wrote letters or reports",
+    "hi": "पत्र या रिपोर्ट लिखी",
+    "mr": "पत्रे किंवा अहवाल लिहिला",
+    "bn": "চিঠি বা প্রতিবেদন লিখেছি"
+   },
+   "skill_ids": [
+    "SK-COMM-001",
+    "SK-COMM-005"
+   ]
+  },
+  {
+   "id": "ACT-030",
+   "icon": "🏭",
+   "label": {
+    "en": "Worked in a factory or workshop",
+    "hi": "फैक्ट्री या वर्कशॉप में काम किया",
+    "mr": "कारखान्यात किंवा वर्कशॉपमध्ये काम केले",
+    "bn": "কারখানা বা ওয়ার্কশপে কাজ করেছি"
+   },
+   "skill_ids": [
+    "SK-ENGG-006",
+    "SK-ENGG-016",
+    "SK-ENGG-007"
+   ]
+  },
+  {
+   "id": "ACT-031",
+   "icon": "🔩",
+   "label": {
+    "en": "Checked pumps, valves or pipes",
+    "hi": "पंप, वाल्व या पाइप जाँचे",
+    "mr": "पंप, व्हॉल्व्ह किंवा पाइप तपासले",
+    "bn": "পাম্প, ভালভ বা পাইপ পরীক্ষা করেছি"
+   },
+   "skill_ids": [
+    "SK-OILGAS-005",
+    "SK-OILGAS-004",
+    "SK-OILGAS-006"
+   ]
+  },
+  {
+   "id": "ACT-032",
+   "icon": "🏗️",
+   "label": {
+    "en": "Supervised or measured building work",
+    "hi": "निर्माण कार्य की निगरानी या नाप-जोख की",
+    "mr": "बांधकामाची देखरेख किंवा मोजमाप केले",
+    "bn": "নির্মাণকাজ তদারকি বা মাপজোক করেছি"
+   },
+   "skill_ids": [
+    "SK-CIVIL-007",
+    "SK-CIVIL-008",
+    "SK-CIVIL-003"
+   ]
+  },
+  {
+   "id": "ACT-033",
+   "icon": "📐",
+   "label": {
+    "en": "Drew plans or designs",
+    "hi": "नक्शे या डिज़ाइन बनाए",
+    "mr": "आराखडे किंवा डिझाइन काढले",
+    "bn": "নকশা বা ডিজাইন এঁকেছি"
+   },
+   "skill_ids": [
+    "SK-ENGG-002",
+    "SK-CIVIL-001",
+    "SK-ENGG-003",
+    "SK-ENGG-001",
+    "SK-DESIGN-014",
+    "SK-DESIGN-012"
+   ]
+  },
+  {
+   "id": "ACT-034",
+   "icon": "🏬",
+   "label": {
+    "en": "Managed stock in a store or godown",
+    "hi": "दुकान या गोदाम में स्टॉक संभाला",
+    "mr": "दुकान किंवा गोदामातील माल सांभाळला",
+    "bn": "দোকান বা গুদামে মজুত মাল সামলেছি"
+   },
+   "skill_ids": [
+    "SK-LOGI-002",
+    "SK-LOGI-003",
+    "SK-LOGI-005"
+   ]
+  },
+  {
+   "id": "ACT-035",
+   "icon": "🚚",
+   "label": {
+    "en": "Planned deliveries or managed vehicles",
+    "hi": "डिलीवरी की योजना बनाई या गाड़ियाँ संभालीं",
+    "mr": "डिलिव्हरीचे नियोजन केले किंवा वाहने सांभाळली",
+    "bn": "ডেলিভারির পরিকল্পনা করেছি বা গাড়ি সামলেছি"
+   },
+   "skill_ids": [
+    "SK-LOGI-004",
+    "SK-LOGI-007",
+    "SK-LOGI-001",
+    "SK-LOGI-008"
+   ]
+  },
+  {
+   "id": "ACT-036",
+   "icon": "🌱",
+   "label": {
+    "en": "Grew vegetables, fruit or plants",
+    "hi": "सब्ज़ी, फल या पौधे उगाए",
+    "mr": "भाजीपाला, फळे किंवा रोपे वाढवली",
+    "bn": "সবজি, ফল বা গাছ ফলিয়েছি"
+   },
+   "skill_ids": [
+    "SK-AGRI-005",
+    "SK-AGRI-004",
+    "SK-AGRI-002"
+   ]
+  },
+  {
+   "id": "ACT-037",
+   "icon": "🧑‍🌾",
+   "label": {
+    "en": "Helped farmers with advice or schemes",
+    "hi": "किसानों को सलाह या योजनाओं में मदद की",
+    "mr": "शेतकऱ्यांना सल्ला किंवा योजनांमध्ये मदत केली",
+    "bn": "কৃষকদের পরামর্শ বা সরকারি প্রকল্পে সাহায্য করেছি"
+   },
+   "skill_ids": [
+    "SK-AGRI-003",
+    "SK-AGRI-006",
+    "SK-GOV-004"
+   ]
+  },
+  {
+   "id": "ACT-038",
+   "icon": "💧",
+   "label": {
+    "en": "Looked after water, waste or cleanliness work",
+    "hi": "पानी, कचरे या सफ़ाई का काम संभाला",
+    "mr": "पाणी, कचरा किंवा स्वच्छतेचे काम पाहिले",
+    "bn": "পানি, বর্জ্য বা পরিচ্ছন্নতার কাজ দেখেছি"
+   },
+   "skill_ids": [
+    "SK-ENV-006",
+    "SK-ENV-002",
+    "SK-HEALTH-010"
+   ]
+  },
+  {
+   "id": "ACT-039",
+   "icon": "🏛️",
+   "label": {
+    "en": "Worked in a panchayat or government office",
+    "hi": "पंचायत या सरकारी दफ़्तर में काम किया",
+    "mr": "पंचायत किंवा सरकारी कार्यालयात काम केले",
+    "bn": "পঞ্চায়েত বা সরকারি অফিসে কাজ করেছি"
+   },
+   "skill_ids": [
+    "SK-GOV-006",
+    "SK-GOV-005",
+    "SK-GOV-001"
+   ]
+  },
+  {
+   "id": "ACT-040",
+   "icon": "🏨",
+   "label": {
+    "en": "Worked at a hotel front desk or restaurant",
+    "hi": "होटल रिसेप्शन या रेस्तरां में काम किया",
+    "mr": "हॉटेल रिसेप्शन किंवा रेस्टॉरंटमध्ये काम केले",
+    "bn": "হোটেলের রিসেপশনে বা রেস্তোরাঁয় কাজ করেছি"
+   },
+   "skill_ids": [
+    "SK-HOSP-001",
+    "SK-HOSP-005"
+   ]
+  },
+  {
+   "id": "ACT-041",
+   "icon": "🧳",
+   "label": {
+    "en": "Planned trips or tours",
+    "hi": "यात्राओं या टूर की योजना बनाई",
+    "mr": "सहली किंवा टूरचे नियोजन केले",
+    "bn": "ভ্রমণ বা ট্যুরের পরিকল্পনা করেছি"
+   },
+   "skill_ids": [
+    "SK-HOSP-006",
+    "SK-HOSP-003",
+    "SK-HOSP-004"
+   ]
+  },
+  {
+   "id": "ACT-042",
+   "icon": "💊",
+   "label": {
+    "en": "Worked at a medical shop or clinic",
+    "hi": "मेडिकल दुकान या क्लिनिक में काम किया",
+    "mr": "मेडिकल दुकान किंवा क्लिनिकमध्ये काम केले",
+    "bn": "ওষুধের দোকান বা ক্লিনিকে কাজ করেছি"
+   },
+   "skill_ids": [
+    "SK-HEALTH-007",
+    "SK-HEALTH-002",
+    "SK-HEALTH-003",
+    "SK-HEALTH-009",
+    "SK-HEALTH-008",
+    "SK-HEALTH-006"
+   ]
+  },
+  {
+   "id": "ACT-043",
+   "icon": "🏫",
+   "label": {
+    "en": "Taught or tutored students",
+    "hi": "विद्यार्थियों को पढ़ाया या ट्यूशन दी",
+    "mr": "विद्यार्थ्यांना शिकवले किंवा शिकवणी घेतली",
+    "bn": "শিক্ষার্থীদের পড়িয়েছি বা প্রাইভেট টিউশন দিয়েছি"
+   },
+   "skill_ids": [
+    "SK-EDU-002",
+    "SK-EDU-001",
+    "SK-EDU-003",
+    "SK-EDU-005"
+   ]
+  },
+  {
+   "id": "ACT-044",
+   "icon": "🏦",
+   "label": {
+    "en": "Worked at a bank or with loans and insurance",
+    "hi": "बैंक में या लोन व बीमा का काम किया",
+    "mr": "बँकेत किंवा कर्ज व विम्याचे काम केले",
+    "bn": "ব্যাংকে বা ঋণ ও বিমার কাজে কাজ করেছি"
+   },
+   "skill_ids": [
+    "SK-FIN-011",
+    "SK-FIN-004",
+    "SK-FIN-005"
+   ]
+  },
+  {
+   "id": "ACT-045",
+   "icon": "🧮",
+   "label": {
+    "en": "Did accounts on Tally or filed GST",
+    "hi": "Tally पर हिसाब किया या GST भरा",
+    "mr": "Tally वर हिशोब केला किंवा GST भरला",
+    "bn": "Tally-তে হিসাব করেছি বা GST দাখিল করেছি"
+   },
+   "skill_ids": [
+    "SK-FIN-003",
+    "SK-FIN-001",
+    "SK-HR-004",
+    "SK-FIN-008",
+    "SK-FIN-013",
+    "SK-FIN-014"
+   ]
+  },
+  {
+   "id": "ACT-046",
+   "icon": "📞",
+   "label": {
+    "en": "Answered calls or complaints",
+    "hi": "कॉल या शिकायतें सुनीं",
+    "mr": "कॉल किंवा तक्रारी हाताळल्या",
+    "bn": "ফোন বা অভিযোগ সামলেছি"
+   },
+   "skill_ids": [
+    "SK-CUST-003",
+    "SK-CUST-002",
+    "SK-CUST-005"
+   ]
+  },
+  {
+   "id": "ACT-047",
+   "icon": "🤝",
+   "label": {
+    "en": "Sold products or found new customers",
+    "hi": "सामान बेचा या नए ग्राहक खोजे",
+    "mr": "माल विकला किंवा नवे ग्राहक शोधले",
+    "bn": "পণ্য বিক্রি করেছি বা নতুন গ্রাহক খুঁজেছি"
+   },
+   "skill_ids": [
+    "SK-SALES-001",
+    "SK-SALES-002",
+    "SK-SALES-008",
+    "SK-SALES-004",
+    "SK-SALES-006"
+   ]
+  },
+  {
+   "id": "ACT-048",
+   "icon": "📣",
+   "label": {
+    "en": "Promoted a business on social media",
+    "hi": "सोशल मीडिया पर व्यापार का प्रचार किया",
+    "mr": "सोशल मीडियावर व्यवसायाचा प्रचार केला",
+    "bn": "সোশ্যাল মিডিয়ায় ব্যবসার প্রচার করেছি"
+   },
+   "skill_ids": [
+    "SK-MKT-011",
+    "SK-MKT-004",
+    "SK-MKT-005",
+    "SK-MKT-006",
+    "SK-MKT-013",
+    "SK-MKT-008",
+    "SK-DATA-013"
+   ]
+  },
+  {
+   "id": "ACT-049",
+   "icon": "🎨",
+   "label": {
+    "en": "Made posters or graphic designs",
+    "hi": "पोस्टर या ग्राफ़िक डिज़ाइन बनाए",
+    "mr": "पोस्टर किंवा ग्राफिक डिझाइन बनवले",
+    "bn": "পোস্টার বা গ্রাফিক ডিজাইন বানিয়েছি"
+   },
+   "skill_ids": [
+    "SK-DESIGN-001",
+    "SK-DESIGN-008",
+    "SK-DESIGN-003",
+    "SK-DESIGN-004",
+    "SK-DESIGN-006",
+    "SK-DESIGN-005"
+   ]
+  },
+  {
+   "id": "ACT-050",
+   "icon": "🎬",
+   "label": {
+    "en": "Edited videos or photos",
+    "hi": "वीडियो या फ़ोटो एडिट किए",
+    "mr": "व्हिडिओ किंवा फोटो एडिट केले",
+    "bn": "ভিডিও বা ছবি এডিট করেছি"
+   },
+   "skill_ids": [
+    "SK-DESIGN-009",
+    "SK-CONTENT-005",
+    "SK-DESIGN-010",
+    "SK-CONTENT-007"
+   ]
+  },
+  {
+   "id": "ACT-051",
+   "icon": "📰",
+   "label": {
+    "en": "Wrote articles, posts or scripts",
+    "hi": "लेख, पोस्ट या स्क्रिप्ट लिखे",
+    "mr": "लेख, पोस्ट किंवा स्क्रिप्ट लिहिले",
+    "bn": "প্রবন্ধ, পোস্ট বা স্ক্রিপ্ট লিখেছি"
+   },
+   "skill_ids": [
+    "SK-CONTENT-001",
+    "SK-MKT-012",
+    "SK-CONTENT-008",
+    "SK-CONTENT-003",
+    "SK-CONTENT-004",
+    "SK-CONTENT-002",
+    "SK-CONTENT-009"
+   ]
+  },
+  {
+   "id": "ACT-052",
+   "icon": "🌐",
+   "label": {
+    "en": "Translated between languages",
+    "hi": "भाषाओं के बीच अनुवाद किया",
+    "mr": "भाषांतर केले",
+    "bn": "এক ভাষা থেকে অন্য ভাষায় অনুবাদ করেছি"
+   },
+   "skill_ids": [
+    "SK-CONTENT-010"
+   ]
+  },
+  {
+   "id": "ACT-053",
+   "icon": "🔍",
+   "label": {
+    "en": "Collected information or ran a survey",
+    "hi": "जानकारी जुटाई या सर्वे किया",
+    "mr": "माहिती गोळा केली किंवा सर्वेक्षण केले",
+    "bn": "তথ্য সংগ্রহ করেছি বা সমীক্ষা চালিয়েছি"
+   },
+   "skill_ids": [
+    "SK-MKT-007",
+    "SK-RESEARCH-003",
+    "SK-RESEARCH-006",
+    "SK-RESEARCH-001",
+    "SK-RESEARCH-002"
+   ]
+  },
+  {
+   "id": "ACT-054",
+   "icon": "📈",
+   "label": {
+    "en": "Studied numbers and made charts",
+    "hi": "आँकड़ों का अध्ययन किया और चार्ट बनाए",
+    "mr": "आकडेवारीचा अभ्यास करून चार्ट बनवले",
+    "bn": "সংখ্যা বিশ্লেষণ করে চার্ট বানিয়েছি"
+   },
+   "skill_ids": [
+    "SK-DATA-001",
+    "SK-DATA-002",
+    "SK-DATA-008",
+    "SK-RESEARCH-005",
+    "SK-MKT-009",
+    "SK-SALES-007"
+   ]
+  },
+  {
+   "id": "ACT-055",
+   "icon": "👥",
+   "label": {
+    "en": "Helped with hiring or staff records",
+    "hi": "भर्ती या कर्मचारियों के रिकॉर्ड में मदद की",
+    "mr": "भरती किंवा कर्मचाऱ्यांच्या नोंदींमध्ये मदत केली",
+    "bn": "নিয়োগ বা কর্মীদের নথিতে সাহায্য করেছি"
+   },
+   "skill_ids": [
+    "SK-HR-003",
+    "SK-HR-002",
+    "SK-HR-009",
+    "SK-HR-008",
+    "SK-HR-005",
+    "SK-HR-006"
+   ]
+  },
+  {
+   "id": "ACT-056",
+   "icon": "⚖️",
+   "label": {
+    "en": "Helped with legal papers or rules",
+    "hi": "कानूनी कागज़ों या नियमों में मदद की",
+    "mr": "कायदेशीर कागदपत्रे किंवा नियमांमध्ये मदत केली",
+    "bn": "আইনি কাগজপত্র বা নিয়মকানুনে সাহায্য করেছি"
+   },
+   "skill_ids": [
+    "SK-LEGAL-001",
+    "SK-LEGAL-003",
+    "SK-LEGAL-002",
+    "SK-LEGAL-004",
+    "SK-LEGAL-005",
+    "SK-SEC-008"
+   ]
+  },
+  {
+   "id": "ACT-057",
+   "icon": "🛡️",
+   "label": {
+    "en": "Checked risks or followed company rules",
+    "hi": "जोखिम जाँचे या कंपनी के नियम निभाए",
+    "mr": "जोखीम तपासली किंवा कंपनीचे नियम पाळले",
+    "bn": "ঝুঁকি যাচাই করেছি বা কোম্পানির নিয়ম মেনেছি"
+   },
+   "skill_ids": [
+    "SK-FIN-015",
+    "SK-ENGG-008",
+    "SK-ENV-003",
+    "SK-ENV-005",
+    "SK-SEC-007"
+   ]
+  },
+  {
+   "id": "ACT-058",
+   "icon": "🖥️",
+   "label": {
+    "en": "Set up or fixed computers and networks",
+    "hi": "कंप्यूटर या नेटवर्क लगाए या ठीक किए",
+    "mr": "संगणक किंवा नेटवर्क बसवले किंवा दुरुस्त केले",
+    "bn": "কম্পিউটার ও নেটওয়ার্ক বসিয়েছি বা সারিয়েছি"
+   },
+   "skill_ids": [
+    "SK-CLOUD-008",
+    "SK-PROG-014",
+    "SK-SEC-001",
+    "SK-CLOUD-010",
+    "SK-SEC-005",
+    "SK-CLOUD-002"
+   ]
+  },
+  {
+   "id": "ACT-059",
+   "icon": "🧑‍💻",
+   "label": {
+    "en": "Wrote computer programs",
+    "hi": "कंप्यूटर प्रोग्राम लिखे",
+    "mr": "संगणक प्रोग्राम लिहिले",
+    "bn": "কম্পিউটার প্রোগ্রাম লিখেছি"
+   },
+   "skill_ids": [
+    "SK-PROG-002",
+    "SK-PROG-005",
+    "SK-PROG-008",
+    "SK-PROG-007",
+    "SK-PROG-011",
+    "SK-CLOUD-007",
+    "SK-WEB-010",
+    "SK-WEB-008",
+    "SK-WEB-003",
+    "SK-WEB-011",
+    "SK-PROG-003",
+    "SK-PROG-012"
+   ]
+  },
+  {
+   "id": "ACT-060",
+   "icon": "🤖",
+   "label": {
+    "en": "Worked with data, AI or machine learning",
+    "hi": "डेटा, AI या मशीन लर्निंग पर काम किया",
+    "mr": "डेटा, AI किंवा मशीन लर्निंगवर काम केले",
+    "bn": "ডেটা, এআই বা মেশিন লার্নিং নিয়ে কাজ করেছি"
+   },
+   "skill_ids": [
+    "SK-AIML-001",
+    "SK-AIML-002",
+    "SK-AIML-008",
+    "SK-AIML-003",
+    "SK-PROG-009",
+    "SK-DATA-016",
+    "SK-PROG-015",
+    "SK-DATA-015",
+    "SK-DATA-012",
+    "SK-AIML-004",
+    "SK-AIML-005",
+    "SK-AIML-006",
+    "SK-AIML-009",
+    "SK-AIML-010"
+   ]
+  },
+  {
+   "id": "ACT-061",
+   "icon": "🔌",
+   "label": {
+    "en": "Built electronics or sensor projects",
+    "hi": "इलेक्ट्रॉनिक्स या सेंसर प्रोजेक्ट बनाए",
+    "mr": "इलेक्ट्रॉनिक्स किंवा सेन्सर प्रकल्प बनवले",
+    "bn": "ইলেকট্রনিক্স বা সেন্সরের প্রজেক্ট বানিয়েছি"
+   },
+   "skill_ids": [
+    "SK-ELEC-003",
+    "SK-ELEC-004",
+    "SK-ELEC-007",
+    "SK-ELEC-008",
+    "SK-ELEC-009",
+    "SK-ELEC-005",
+    "SK-ENGG-010"
+   ]
+  }
+ ]
+}

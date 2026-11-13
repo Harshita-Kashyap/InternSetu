@@ -53,7 +53,7 @@ export default function MatchSheet({ id, onClose, onProfile }: { id: string | nu
                   </View>
                 </View>
               ) : (
-                <View style={[styles.callout, { backgroundColor: colors.dangerBg }]}>
+                <View style={[styles.callout, { backgroundColor: colors.warnBg }]}>
                   <View style={styles.x}><Text style={styles.xTxt}>!</Text></View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.strong}>{t("Not eligible")}</Text>
@@ -103,7 +103,7 @@ const makeStyles = (colors: Colors) => StyleSheet.create({
   strong: { fontSize: 15, color: colors.text, fontFamily: fonts.bold },
   li: { fontSize: 13.5, color: colors.text, fontFamily: fonts.body, lineHeight: 21 },
   callout: { flexDirection: "row", alignItems: "center", gap: 14, padding: 14, borderRadius: 16, marginTop: 16 },
-  x: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.danger, alignItems: "center", justifyContent: "center" },
+  x: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.warn, alignItems: "center", justifyContent: "center" },
   xTxt: { color: "#fff", fontSize: 20, fontFamily: fonts.bold },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   chip: { paddingVertical: 5, paddingHorizontal: 11, borderRadius: 999, overflow: "hidden", backgroundColor: colors.chip, color: colors.text, fontSize: 12.5, fontFamily: fonts.medium },

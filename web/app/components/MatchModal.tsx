@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "../../i18n/navigation";
 import { useLocale } from "next-intl";
 import Ring from "./Ring";
+import ApplyHelp from "./ApplyHelp";
 import { api, ApiError, InternshipDetail } from "../lib/api";
 import { useT } from "../../i18n/useT";
 
@@ -80,6 +81,8 @@ export default function MatchModal({ id, onClose }: { id: string; onClose: () =>
               <strong>{d.stipend_inr_per_month ? `₹${d.stipend_inr_per_month.toLocaleString("en-IN")}/${tr("mo")}` : tr("Stipend not listed")}</strong>
               <a className="apply-btn linklike" href={d.apply_url} target="_blank" rel="noopener noreferrer">{tr("Apply on PMIS")}</a>
             </div>
+            {d.distance_km != null && d.distance_km > 0 && <p className="muted">📍 {d.location_name} · {d.distance_km} km {tr("away")}</p>}
+            <ApplyHelp />
             {d.is_demo_data && <p className="field-hint">{tr("Demo listing: not an official PMIS vacancy. Apply only through the official PMIS portal.")}</p>}
           </>
         )}

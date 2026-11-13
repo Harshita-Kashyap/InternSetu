@@ -1,5 +1,6 @@
 "use client";
 
+import OfflineBanner from "./OfflineBanner";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { Link, usePathname, useRouter } from "../../i18n/navigation";
 import ThemeToggle from "./ThemeToggle";
@@ -11,6 +12,7 @@ const NAV = [
   { href: "/recommendations", label: "Top matches" },
   { href: "/saved", label: "Saved" },
   { href: "/profile/edit", label: "Edit profile" },
+  { href: "/account", label: "Account" },
 ];
 
 export default function Header({ label = "Profile Setup" }: { label?: string }) {
@@ -19,6 +21,8 @@ export default function Header({ label = "Profile Setup" }: { label?: string }) 
   const path = usePathname() ?? "";
   const active = (h: string) => (h === "/profile/edit" ? /\/profile(\/|$)/.test(path) : path.endsWith(h));
   return (
+    <>
+    <OfflineBanner />
     <header className="profile-header">
       <Link href="/home" className="profile-brand" aria-label="InternSetu home">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -40,5 +44,6 @@ export default function Header({ label = "Profile Setup" }: { label?: string }) 
         </button>
       </div>
     </header>
+    </>
   );
 }

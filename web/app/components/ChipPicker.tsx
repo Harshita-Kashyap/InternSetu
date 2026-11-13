@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import MicButton from "./MicButton";
 import { useT } from "../../i18n/useT";
 
 const COLLAPSED = 12;
@@ -24,8 +25,11 @@ export default function ChipPicker({ title, hint, options, selected, onToggle, k
         <span className="selection-count" key={selected.length}>{selected.length} {tr("selected")}</span>
       </div>
       {options.length > COLLAPSED && (
-        <input className="pick-search" type="search" value={q} onChange={(e) => setQ(e.target.value)}
+        <div className="voice-row">
+          <input className="pick-search" type="search" value={q} onChange={(e) => setQ(e.target.value)}
           placeholder={tr("Search") + "…"} aria-label={`${tr("Search")} ${title}`} />
+          <MicButton onText={setQ} />
+        </div>
       )}
       {selected.length > 0 && (
         <div className="picked-tray" aria-label={tr("Selected")}>

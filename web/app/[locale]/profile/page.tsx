@@ -7,6 +7,8 @@ import { useTranslations } from "next-intl";
 import Header from "../../components/Header";
 import SelectOther from "../../components/SelectOther";
 import Stepper from "../../components/Stepper";
+import StepHero from "../../components/StepHero";
+import { iconFor } from "../../lib/illustrations";
 import { useToast } from "../../components/Toast";
 import { loadProfileRemote, saveProfileRemote } from "../../lib/store";
 import { useTax } from "../../lib/taxo";
@@ -57,11 +59,7 @@ export default function ProfilePage() {
       <Header />
       <section className="profile-container">
         <div className="profile-card card-rise">
-          <div className="profile-intro">
-            <p className="profile-eyebrow">{t("eyebrow")}</p>
-            <h1>{t("heading")}</h1>
-            <p>{t("description")}</p>
-          </div>
+          <StepHero art="education" eyebrow={t("eyebrow")} title={t("heading")} text={t("description")} />
 
           <Stepper current={1} />
 
@@ -72,12 +70,15 @@ export default function ProfilePage() {
 
           <div className="profile-form stagger">
             <div className="profile-field">
-              <label htmlFor="education">{t("educationLevel")}</label>
-              <select id="education" value={education} onChange={(e) => setEducation(e.target.value)}>
+              <span id="edu-label" className="field-label">{t("educationLevel")}</span>
+              <div className="icon-grid" role="radiogroup" aria-labelledby="edu-label">
                 {levels.map((level) => (
-                  <option key={level} value={level}>{level}</option>
+                  <button key={level} type="button" role="radio" aria-checked={education === level} className={`icon-tile ${education === level ? "selected" : ""}`} onClick={() => setEducation(level)}>
+                    <span className="icon-emoji" aria-hidden="true">{iconFor(level)}</span>
+                    <strong>{level}</strong>
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
 
             <SelectOther id="degree" label={t("degree")} options={degrees} value={degree} onChange={setDegree} placeholder={t("degreePlaceholder")} />

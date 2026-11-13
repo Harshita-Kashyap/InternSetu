@@ -1,3 +1,5 @@
+import MicButton from "../components/MicButton";
+import { useSpeakable } from "../speak";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View, Pressable } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -29,6 +31,7 @@ export default function HomeScreen({ navigation }: Props) {
   const [query, setQuery] = useState("");
   const [sector, setSector] = useState("");
   const [city, setCity] = useState("");
+  const [facs, setFacs] = useState<string[]>([]);
   const [sheet, setSheet] = useState<"sector" | "city" | null>(null);
   const [items, setItems] = useState<BrowseItem[] | null>(null);
   const [total, setTotal] = useState(0);
@@ -46,7 +49,7 @@ export default function HomeScreen({ navigation }: Props) {
     const my = ++seq.current;
     if (pull) setRefreshing(true); else if (offset === 0) { setItems(null); setFailed(false); } else setMore(true);
     try {
-      const r = await api.browse({ scope, q: query, sector: idOf(sectors.items, sector), city: idOf(cities.items, city), limit: PAGE, offset });
+      const r = await api.browse({ scope, q: query, sector: idOf(sectors.items, sector), city: idOf(cities.items, city), facilities: facs, limit: PAGE, offset });
       if (my !== seq.current) return;
       setComplete(r.profile_complete); setTotal(r.total); setFailed(false);
       setItems((c) => (offset === 0 ? r.items : [...(c ?? []), ...r.items]));
@@ -58,7 +61,7 @@ export default function HomeScreen({ navigation }: Props) {
       toast(e instanceof ApiError ? e.message : t("Could not load internships."));
     } finally { if (my === seq.current) { setMore(false); setRefreshing(false); } }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scope, query, sector, city, sectors.items, cities.items]);
+  }, [scope, query, sector, city, facs, sectors.items, cities.items]);
   useEffect(() => { load(0); }, [load]);
 
   const toggleSave = async (it: BrowseItem) => {
@@ -69,18 +72,20 @@ export default function HomeScreen({ navigation }: Props) {
     } catch (e) { toast(e instanceof ApiError ? e.message : t("Could not update saved list.")); }
   };
 
-  const filtered = !!(query || sector || city);
-  const clear = () => { setQ(""); setQuery(""); setSector(""); setCity(""); };
+  const filtered = !!(query || sector || city || facs.length);
+  const clear = () => { setQ(""); setQuery(""); setSector(""); setCity(""); setFacs([]); };
+
+  useSpeakable(`${t("Find your internship")}. ${t("Browse every listing, see where you are eligible, and check your match before you apply.")}`);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.cream }}>
       <Header />
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 60 }} keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(0, true)} tintColor={colors.teal} />}>
-        <Text style={styles.eyebrow}>{t("DISCOVER")}</Text>
+        <Text style={styles.eyebrow}>{t("Discover")}</Text>
         <Text style={styles.h1}>{t("Find your internship")}</Text>
         <Text style={styles.sub}>{t("Browse every listing, see where you are eligible, and check your match before you apply.")}</Text>
-        <Text style={styles.notice}>ⓘ {t("These are demo listings (synthetic data), not official PMIS vacancies. Apply only on the official PMIS portal.")}</Text>
+        <Text style={styles.notice}>ⓘ {t("These are demo listings (sample data), not official PMIS vacancies. Apply only on the official PMIS portal.")}</Text>
 
         <View style={styles.tabs}>
           {([["all", t("All internships")], ["suitable", t("Suitable for me")]] as [Scope, string][]).map(([id, label]) => (
@@ -90,8 +95,13 @@ export default function HomeScreen({ navigation }: Props) {
           ))}
         </View>
 
-        <TextInput value={q} onChangeText={setQ} placeholder={t("Search title, company or keyword")} placeholderTextColor={colors.faint}
-          style={styles.search} autoCapitalize="none" returnKeyType="search" accessibilityLabel={t("Search internships")} />
+        <Text style={{ color: colors.teal, fontFamily: fonts.bold, fontSize: 13, marginBottom: 10 }} onPress={() => navigation.navigate("PmisCheck")} accessibilityRole="link">✓ {t("Can I apply to PMIS?")}</Text>
+
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <TextInput value={q} onChangeText={setQ} placeholder={t("Search title, company or keyword")} placeholderTextColor={colors.faint}
+          style={[styles.search, { flex: 1 }]} autoCapitalize="none" returnKeyType="search" accessibilityLabel={t("Search internships")} />
+          <MicButton onText={setQ} />
+        </View>
         <View style={styles.filters}>
           <Pressable onPress={() => setSheet("sector")} style={[styles.filter, !!sector && styles.filterOn]}>
             <Text style={[styles.filterTxt, !!sector && { color: colors.tealDark }]} numberOfLines={1}>{sector || t("All sectors")} ▾</Text>
@@ -100,6 +110,19 @@ export default function HomeScreen({ navigation }: Props) {
             <Text style={[styles.filterTxt, !!city && { color: colors.tealDark }]} numberOfLines={1}>{city || t("All locations")} ▾</Text>
           </Pressable>
           {filtered ? <Pressable onPress={clear} style={styles.clear}><Text style={styles.clearTxt}>{t("Clear")}</Text></Pressable> : null}
+        </View>
+
+        <View style={styles.facRow} accessibilityRole="toolbar">
+          <Text style={{ color: colors.muted, fontSize: 14 }}>{t("Must offer")}:</Text>
+          {([["food", "Food"], ["stay", "Stay"], ["transport", "Transport"], ["travel_allowance", "Travel allowance"]] as [string, string][]).map(([k, label]) => {
+            const on = facs.includes(k);
+            return (
+              <Pressable key={k} onPress={() => setFacs(on ? facs.filter((x) => x !== k) : [...facs, k])} accessibilityRole="button" accessibilityState={{ selected: on }}
+                style={[styles.fac, on && styles.filterOn]}>
+                <Text style={[styles.filterTxt, on && { color: colors.tealDark }]}>{t(label)}</Text>
+              </Pressable>
+            );
+          })}
         </View>
 
         {complete === false ? (
@@ -137,19 +160,21 @@ const makeStyles = (colors: Colors) => StyleSheet.create({
   h1: { fontSize: 28, fontFamily: fonts.headXL, color: colors.text, letterSpacing: -0.8, marginTop: 6 },
   sub: { fontSize: 14, color: colors.muted, fontFamily: fonts.body, lineHeight: 21, marginTop: 8 },
   notice: { marginTop: 14, padding: 12, borderRadius: 12, overflow: "hidden", backgroundColor: colors.tealLight, color: colors.text, fontSize: 12.5, fontFamily: fonts.body, lineHeight: 18 },
-  tabs: { flexDirection: "row", gap: 4, padding: 4, borderRadius: 14, backgroundColor: colors.chip, marginTop: 18 },
-  tab: { flex: 1, height: 40, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  tabs: { flexDirection: "row", gap: 4, padding: 4, borderRadius: 12, backgroundColor: colors.chip, marginTop: 18 },
+  tab: { flex: 1, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
   tabOn: { backgroundColor: colors.white },
   tabTxt: { color: colors.muted, fontSize: 13.5, fontFamily: fonts.bold },
   search: { height: 48, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.white, paddingHorizontal: 14, marginTop: 14, fontFamily: fonts.body, fontSize: 14, color: colors.text },
   filters: { flexDirection: "row", gap: 8, marginTop: 10, alignItems: "center" },
   filter: { flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.white, paddingHorizontal: 12, justifyContent: "center" },
+  facRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, alignItems: "center", marginTop: 10 },
+  fac: { minHeight: 44, borderRadius: 22, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.white, paddingHorizontal: 14, justifyContent: "center" },
   filterOn: { backgroundColor: colors.tealLight, borderColor: colors.teal },
   filterTxt: { color: colors.text, fontSize: 13, fontFamily: fonts.semibold },
   clear: { height: 42, paddingHorizontal: 12, justifyContent: "center" },
   clearTxt: { color: colors.teal, fontSize: 13, fontFamily: fonts.bold },
   count: { color: colors.muted, fontSize: 13, fontFamily: fonts.semibold, marginTop: 14, marginBottom: 12 },
-  empty: { alignItems: "center", gap: 12, padding: 28, marginTop: 20, borderRadius: 20, borderWidth: 1.5, borderStyle: "dashed", borderColor: colors.tealBorder, backgroundColor: colors.white },
+  empty: { alignItems: "center", gap: 12, padding: 28, marginTop: 20, borderRadius: 16, borderWidth: 1.5, borderStyle: "dashed", borderColor: colors.tealBorder, backgroundColor: colors.white },
   emptyH: { fontSize: 17, fontFamily: fonts.bold, color: colors.text, textAlign: "center" },
   emptyP: { fontSize: 13.5, color: colors.muted, fontFamily: fonts.body, textAlign: "center", lineHeight: 20 },
 });

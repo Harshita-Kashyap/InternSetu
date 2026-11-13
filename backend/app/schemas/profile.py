@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.engine.profile import KNOWN_DURATIONS
 
-_LISTS = ("skill_ids", "interest_ids", "preferred_role_ids", "preferred_sector_ids", "preferred_location_ids")
+_LISTS = ("skill_ids", "preferred_role_ids", "preferred_sector_ids", "preferred_location_ids")
 
 
 class ProfileUpdate(BaseModel):
@@ -18,7 +18,7 @@ class ProfileUpdate(BaseModel):
     field_of_study_id: str | None = None
     year_of_completion: int | None = Field(None, ge=1980, le=2040)
     skill_ids: list[str] | None = Field(None, max_length=80)
-    interest_ids: list[str] | None = Field(None, max_length=30)
+    interest_ids: list[str] | None = Field(None, exclude=True)   # retired: accepted from old apps, ignored, never stored or returned
     preferred_role_ids: list[str] | None = Field(None, max_length=30)
     preferred_sector_ids: list[str] | None = Field(None, max_length=30)
     home_location_id: str | None = None
@@ -65,7 +65,6 @@ class ProfileResponse(BaseModel):
     field_of_study_id: str | None
     year_of_completion: int | None
     skill_ids: list[str]
-    interest_ids: list[str]
     preferred_role_ids: list[str]
     preferred_sector_ids: list[str]
     home_location_id: str | None

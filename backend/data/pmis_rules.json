@@ -1,0 +1,17 @@
+{
+ "_note": "Editable PMIS rules. Sources disagree (age 18-25 vs 21-24; income 8 vs 12 lakh; duration 12 vs 6/9 months). VERIFY on https://pminternship.mca.gov.in before relying on them. The portal always decides.",
+ "version": "phase3-2026-unverified",
+ "official_url": "https://pminternship.mca.gov.in/",
+ "age_min": 18,
+ "age_max": 25,
+ "family_income_limit_lakh": 12,
+ "duration_months": [
+  6,
+  9
+ ],
+ "stipend_inr_per_month": 9000,
+ "stipend_govt": 8100,
+ "stipend_company": 900,
+ "one_time_grant_inr": 6000,
+ "excluded_qualifications_note": "IIT / IIM / IISER / NLU graduates, CA, CMA, CS, MBA, MBBS, BDS, PhD and similar professional or master's-level degrees are excluded in earlier guidelines; final-year students of graduation/PG are allowed in Phase III."
+}

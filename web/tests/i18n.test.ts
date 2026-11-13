@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import en from "../messages/en.json";
 import hi from "../messages/hi.json";
 import mr from "../messages/mr.json";
+import bn from "../messages/bn.json";
 
 // same rule as i18n/useT.ts (kept local so this test needs no React/next-intl)
 const uiKey = (s: string) => {
@@ -19,7 +20,7 @@ const walk = (d: string): string[] => readdirSync(d).flatMap((f) => {
 const files = walk("app");
 
 describe("translations", () => {
-  const ui = { en: en.UI as Record<string, string>, hi: hi.UI as Record<string, string>, mr: mr.UI as Record<string, string> };
+  const ui = { en: en.UI as Record<string, string>, hi: hi.UI as Record<string, string>, mr: mr.UI as Record<string, string>, bn: bn.UI as Record<string, string> };
 
   it("every tr(\"…\") string in the source exists in en, hi and mr", () => {
     const missing: string[] = [];
@@ -35,6 +36,12 @@ describe("translations", () => {
     expect(Object.keys(ui.hi).sort()).toEqual(Object.keys(ui.en).sort());
     expect(Object.keys(ui.mr).sort()).toEqual(Object.keys(ui.en).sort());
   });
+  it("bn (partly translated, English fallback) has every en key, no empty values, same {placeholders}", () => {
+    expect(Object.keys(ui.bn).sort()).toEqual(Object.keys(ui.en).sort());
+    expect(Object.entries(ui.bn).filter(([, v]) => !String(v).trim())).toEqual([]);
+    const ph = (t: string) => (t.match(/\{\w+\}/g) ?? []).sort();
+    expect(Object.keys(ui.en).filter((k) => JSON.stringify(ph(ui.bn[k])) !== JSON.stringify(ph(ui.en[k])))).toEqual([]);
+  });
   it("no translation is empty", () => {
     for (const l of ["hi", "mr"] as const) expect(Object.entries(ui[l]).filter(([, v]) => !String(v).trim())).toEqual([]);
   });
@@ -46,6 +53,11 @@ describe("language persistence", () => {
       const s = readFileSync(f, "utf8");
       return /from "next\/link"/.test(s) || /import \{[^}]*\b(useRouter|usePathname|redirect)\b[^}]*\} from "next\/navigation"/.test(s);
     });
+    expect(bad).toEqual([]);
+  });
+
+  it("plain-language guard: no jargon words in English UI text (#16)", () => {
+    const bad = Object.entries(en.UI as Record<string, string>).filter(([, v]) => /relocat|taxonom|mandatory/i.test(v));
     expect(bad).toEqual([]);
   });
 });

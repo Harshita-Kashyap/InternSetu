@@ -4,7 +4,7 @@ import { useT } from "../../i18n/useT";
 
 const steps = [
   { label: "Education", href: "/profile" },
-  { label: "Skills & Interests", href: "/profile/skills" },
+  { label: "Skills", href: "/profile/skills" },
   { label: "Preferences", href: "/profile/preferences" },
 ];
 

@@ -25,3 +25,12 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Build info
+*.tsbuildinfo
+
+# test coverage output
+.coverage
+coverage.xml
+htmlcov/
+coverage/

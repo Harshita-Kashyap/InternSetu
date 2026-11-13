@@ -8,13 +8,21 @@ class Settings(BaseSettings):
     database_url: str
     secret_key: str
     access_token_expire_minutes: int = 60
-    cors_origins: str = "http://localhost:3000,http://localhost:8081,http://localhost:19006"
+    session_max_days: int = 14        # a session can be renewed while the person is active, but never beyond this
+    log_level: str = "INFO"
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://192.168.31.88:3000,http://localhost:8081,http://localhost:19006"
     consent_version: str = "1.0"
     login_max_attempts: int = 5
     login_lockout_minutes: int = 15
     # recommendation engine
     matching_method: Literal["baseline", "tfidf", "hybrid", "semantic"] = "baseline"  # baseline | tfidf | hybrid | semantic (hybrid/semantic need requirements-ml.txt)
     default_k: int = 5  # 3 to 5 recommendations
+    # email (optional). With no SMTP_HOST the app only logs emails (development mode).
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    mail_from: str | None = None
     pmis_portal_url: str = "https://pminternship.mca.gov.in/"  # "Apply" opens here; InternSetu never applies for the user
 
     model_config = SettingsConfigDict(

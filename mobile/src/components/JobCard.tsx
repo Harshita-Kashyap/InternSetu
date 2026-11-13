@@ -3,6 +3,7 @@ import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { BrowseItem } from "../api";
 import { useI18n } from "../i18n";
 import { useTheme, Colors, fonts, shadow } from "../theme";
+import ApplyHelp from "./ApplyHelp";
 
 type Props = {
   item: BrowseItem;
@@ -32,6 +33,7 @@ export default function JobCard({ item: j, onCheck, onSave, onRemove, busy }: Pr
 
       <View style={styles.tags}>
         <Text style={styles.tag}>📍 {j.location_name}</Text>
+        {j.distance_km != null && j.distance_km > 0 ? <Text style={styles.tag}>{j.distance_km} km {t("away")}</Text> : null}
         <Text style={[styles.tag, styles.tagDomain]}>{j.sector_name}</Text>
         {j.duration ? <Text style={styles.tag}>🕒 {j.duration}</Text> : null}
         {j.stipend_inr_per_month != null ? <Text style={styles.tag}>₹{j.stipend_inr_per_month.toLocaleString("en-IN")}/{t("mo")}</Text> : null}
@@ -41,12 +43,12 @@ export default function JobCard({ item: j, onCheck, onSave, onRemove, busy }: Pr
       {j.eligible === true ? <Text style={[styles.status, { color: j.low_match ? colors.warn : colors.success }]}>{j.low_match ? t("Eligible · low match") : t("Eligible")}</Text> : null}
       {j.eligible === false ? (
         <Text style={[styles.status, { color: colors.danger }]}>
-          {t("Not eligible")}: {j.missing_mandatory.length ? `${t("needs")} ${j.missing_mandatory.slice(0, 3).join(", ")}${j.missing_mandatory.length > 3 ? ` +${j.missing_mandatory.length - 3}` : ""}` : t("education level below requirement")}
+          {j.education_ok !== false && j.missing_mandatory.length > 0 && j.missing_mandatory.length <= 2 ? `${t("Close match")} · ` : ""}{t("Not eligible")}: {j.missing_mandatory.length ? `${t("needs")} ${j.missing_mandatory.slice(0, 3).join(", ")}${j.missing_mandatory.length > 3 ? ` +${j.missing_mandatory.length - 3}` : ""}` : t("education level below requirement")}
         </Text>
       ) : null}
 
       <View style={styles.actions}>
-        <Pressable onPress={onCheck} style={styles.ghost}><Text style={styles.ghostTxt}>{t("Check match")}</Text></Pressable>
+        <Pressable onPress={onCheck} style={styles.ghost} accessibilityRole="button"><Text style={styles.ghostTxt}>{t("Check match")}</Text></Pressable>
         <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
           {onSave ? (
             <Pressable onPress={onSave} style={styles.heart} accessibilityRole="button" accessibilityLabel={t("Save internship")} accessibilityState={{ selected: j.saved }}>
@@ -54,20 +56,21 @@ export default function JobCard({ item: j, onCheck, onSave, onRemove, busy }: Pr
             </Pressable>
           ) : null}
           {onRemove ? (
-            <Pressable onPress={onRemove} disabled={busy} style={[styles.ghost, styles.ghostDanger]}><Text style={[styles.ghostTxt, { color: colors.danger }]}>{busy ? "…" : t("Remove")}</Text></Pressable>
+            <Pressable onPress={onRemove} disabled={busy} style={[styles.ghost, styles.ghostDanger]} accessibilityRole="button"><Text style={[styles.ghostTxt, { color: colors.danger }]}>{busy ? "…" : t("Remove")}</Text></Pressable>
           ) : (
-            <Pressable onPress={() => Linking.openURL(j.apply_url)} style={styles.apply}><Text style={styles.applyTxt}>{t("Apply on PMIS")}</Text></Pressable>
+            <Pressable onPress={() => Linking.openURL(j.apply_url)} style={styles.apply} accessibilityRole="link"><Text style={styles.applyTxt}>{t("Apply on PMIS")}</Text></Pressable>
           )}
         </View>
       </View>
+      {onRemove ? null : <ApplyHelp />}
     </View>
   );
 }
 
 const makeStyles = (colors: Colors) => StyleSheet.create({
-  card: { backgroundColor: colors.white, borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: colors.border, ...shadow, shadowOpacity: 0.08 },
+  card: { backgroundColor: colors.white, borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1, borderColor: colors.border, ...shadow, shadowOpacity: 0.08 },
   top: { flexDirection: "row", alignItems: "center", gap: 12 },
-  avatar: { width: 44, height: 44, borderRadius: 14, backgroundColor: colors.tealLight, alignItems: "center", justifyContent: "center" },
+  avatar: { width: 44, height: 44, borderRadius: 12, backgroundColor: colors.tealLight, alignItems: "center", justifyContent: "center" },
   avatarTxt: { color: colors.tealDark, fontSize: 18, fontFamily: fonts.headXL },
   title: { fontSize: 16, fontFamily: fonts.head, color: colors.text, lineHeight: 21 },
   company: { fontSize: 13, color: colors.muted, fontFamily: fonts.body, marginTop: 1 },
@@ -80,10 +83,10 @@ const makeStyles = (colors: Colors) => StyleSheet.create({
   tagDemo: { backgroundColor: colors.warnBg, color: colors.warn },
   status: { marginTop: 12, fontSize: 13, fontFamily: fonts.bold },
   actions: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.divider },
-  ghost: { height: 38, paddingHorizontal: 14, borderRadius: 10, borderWidth: 1, borderColor: colors.border, justifyContent: "center" },
+  ghost: { minHeight: 44, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: colors.border, justifyContent: "center" },
   ghostDanger: { borderColor: colors.danger },
   ghostTxt: { color: colors.text, fontSize: 13, fontFamily: fonts.bold },
-  heart: { width: 38, height: 38, borderRadius: 10, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" },
-  apply: { height: 38, paddingHorizontal: 16, borderRadius: 10, backgroundColor: colors.teal, justifyContent: "center" },
+  heart: { width: 44, height: 44, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" },
+  apply: { minHeight: 44, paddingHorizontal: 16, borderRadius: 12, backgroundColor: colors.teal, justifyContent: "center" },
   applyTxt: { color: "#fff", fontSize: 13, fontFamily: fonts.bold },
 });

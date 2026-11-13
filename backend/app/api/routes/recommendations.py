@@ -6,6 +6,7 @@ from sqlalchemy import select
 from app.core.config import settings
 from app.core.deps import ConsentedUser, CurrentUser, DbSession
 from app.core.errors import ApiError
+from app.core.languages import LANG_PATTERN
 from app.models import CandidateProfile, Internship, SavedInternship
 from app.schemas.recommendation import BrowseResponse, InternshipDetail, RecommendationsResponse, SavedItem
 from app.services.localize import localize
@@ -31,11 +32,13 @@ def get_recommendations(
     user: ConsentedUser, db: DbSession,
     k: Annotated[int | None, Query(ge=3, le=5, description="How many (3 to 5)")] = None,
     method: Method | None = None,
-    lang: Annotated[str | None, Query(pattern="^(en|hi|mr)$", description="Language of explanations; defaults to the user's preferred language")] = None,
+    lang: Annotated[str | None, Query(pattern=LANG_PATTERN, description="Language of explanations; defaults to the user's preferred language")] = None,
+    close_matches: Annotated[bool, Query(description="Fill the list with close matches (1-2 mandatory skills missing) when fewer than k are eligible; also guarantees a slot per preferred sector")] = True,
+    only_my_sectors: Annotated[bool, Query(description="Only show internships in the sectors chosen in the profile")] = False,
 ):
     """Top 3 to 5 internships. If nothing is eligible, `recommendations` is empty and `nearest` explains what is missing."""
     res = rec.recommend_for_profile(db, _complete_profile(db, user), k or settings.default_k,
-                                    method or settings.matching_method)
+                                    method or settings.matching_method, close_matches, only_my_sectors)
     return localize(res, lang or user.preferred_language)
 
 
@@ -52,6 +55,7 @@ def browse_internships(
     city: Annotated[str | None, Query(max_length=30, description="city id")] = None,
     sectors: Annotated[str | None, Query(max_length=600, description="comma-separated sector ids; matches ANY")] = None,
     skills: Annotated[str | None, Query(max_length=1500, description="comma-separated skill ids; internship must list AT LEAST ONE")] = None,
+    facilities: Annotated[str | None, Query(max_length=120, description="comma-separated: food, stay, transport, travel_allowance; must offer ALL")] = None,
     limit: Annotated[int, Query(ge=1, le=50)] = 12,
     offset: Annotated[int, Query(ge=0)] = 0,
 ):
@@ -61,12 +65,12 @@ def browse_internships(
     saved = set(db.scalars(select(Internship.external_id).join(SavedInternship, SavedInternship.internship_id == Internship.id)
                            .where(SavedInternship.user_id == user.id)))
     return rec.browse(db, profile, scope=scope, q=q, sector_id=sector, location_id=city,
-                      sector_ids=_ids(sectors), skill_ids=_ids(skills), limit=limit, offset=offset, saved_ids=saved)
+                      sector_ids=_ids(sectors), skill_ids=_ids(skills), facility_keys=_ids(facilities), limit=limit, offset=offset, saved_ids=saved)
 
 
 @router.get("/recommendations/{internship_id}", response_model=InternshipDetail)
 def get_internship_detail(internship_id: str, user: ConsentedUser, db: DbSession,
-                          lang: Annotated[str | None, Query(pattern="^(en|hi|mr)$")] = None):
+                          lang: Annotated[str | None, Query(pattern=LANG_PATTERN)] = None):
     """Full details of one internship, and how it fits you (works for eligible and non-eligible ones)."""
     return localize(rec.internship_detail(db, _complete_profile(db, user), internship_id), lang or user.preferred_language)
 

@@ -10,7 +10,7 @@ export default function LanguageSwitcher() {
   return (
     <View style={styles.row}>
       {LANGS.map((l) => (
-        <Pressable key={l.code} onPress={() => setLang(l.code)} style={[styles.pill, lang === l.code && styles.on]} accessibilityLabel={l.label}>
+        <Pressable key={l.code} onPress={() => setLang(l.code)} style={[styles.pill, lang === l.code && styles.on]} accessibilityRole="button" accessibilityState={{ selected: lang === l.code }} accessibilityLabel={l.label}>
           <Text style={[styles.txt, lang === l.code && { color: "#fff" }]}>{l.label}</Text>
         </Pressable>
       ))}
@@ -19,7 +19,7 @@ export default function LanguageSwitcher() {
 }
 const makeStyles = (colors: Colors) => StyleSheet.create({
   row: { flexDirection: "row", gap: 6 },
-  pill: { paddingVertical: 5, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1, borderColor: colors.tealBorder, backgroundColor: colors.white },
+  pill: { paddingVertical: 5, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderColor: colors.tealBorder, backgroundColor: colors.white },
   on: { backgroundColor: colors.teal, borderColor: colors.teal },
   txt: { fontSize: 12, color: colors.teal, fontFamily: fonts.bold },
 });

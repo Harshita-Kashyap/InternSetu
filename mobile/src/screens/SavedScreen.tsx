@@ -1,3 +1,4 @@
+import { useSpeakable } from "../speak";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -48,6 +49,8 @@ export default function SavedScreen({ navigation }: Props) {
     finally { setBusy(null); }
   };
 
+  useSpeakable(`${t("Saved internships")}. ${t("Internships you bookmarked. Tap the heart on a recommendation to save it.")}`);
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.cream }}>
       <Header />
@@ -75,7 +78,7 @@ const makeStyles = (colors: Colors) => StyleSheet.create({
   eyebrow: { color: colors.teal, fontSize: 12, fontFamily: fonts.bold, letterSpacing: 1.5, marginTop: 6 },
   h1: { fontSize: 26, fontFamily: fonts.headXL, color: colors.text, letterSpacing: -0.6, marginTop: 6 },
   sub: { fontSize: 13.5, color: colors.muted, lineHeight: 20, fontFamily: fonts.body, marginTop: 6, marginBottom: 16 },
-  empty: { alignItems: "center", gap: 12, padding: 28, marginTop: 10, borderRadius: 20, borderWidth: 1.5, borderStyle: "dashed", borderColor: colors.tealBorder, backgroundColor: colors.white },
+  empty: { alignItems: "center", gap: 12, padding: 28, marginTop: 10, borderRadius: 16, borderWidth: 1.5, borderStyle: "dashed", borderColor: colors.tealBorder, backgroundColor: colors.white },
   emptyH: { fontSize: 17, fontFamily: fonts.bold, color: colors.text, textAlign: "center" },
   emptyP: { fontSize: 13.5, color: colors.muted, fontFamily: fonts.body, textAlign: "center" },
 });

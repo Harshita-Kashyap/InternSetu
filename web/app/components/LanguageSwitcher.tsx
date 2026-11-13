@@ -8,6 +8,7 @@ const LANGS = [
   { code: "en", label: "English" },
   { code: "hi", label: "हिन्दी" },
   { code: "mr", label: "मराठी" },
+  { code: "bn", label: "বাংলা" },
 ];
 
 export default function LanguageSwitcher() {

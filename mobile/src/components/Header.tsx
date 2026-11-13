@@ -8,6 +8,7 @@ import type { RootStackParamList } from "../types";
 import { endSession } from "../store";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
+import ReadScreenButton from "./ReadScreenButton";
 import { useTheme, Colors, fonts } from "../theme";
 
 const NAV: { to: keyof RootStackParamList; label: string }[] = [
@@ -15,6 +16,7 @@ const NAV: { to: keyof RootStackParamList; label: string }[] = [
   { to: "Recommendations", label: "Top matches" },
   { to: "Saved", label: "Saved" },
   { to: "Profile", label: "Edit profile" },
+  { to: "Account", label: "Account" },
 ];
 
 export default function Header() {
@@ -28,12 +30,12 @@ export default function Header() {
   return (
     <View style={[styles.bar, { paddingTop: insets.top + 8 }]}>
       <View style={styles.row}>
-        <Pressable onPress={() => nav.navigate("Home")} style={styles.logoWrap} accessibilityLabel="InternSetu">
+        <Pressable onPress={() => nav.navigate("Home")} style={styles.logoWrap} accessibilityRole="button" accessibilityLabel="InternSetu">
           <Image source={require("../../assets/logo.png")} style={styles.logo} resizeMode="contain" />
         </Pressable>
         <View style={styles.right}>
           <ThemeToggle />
-          <Pressable style={styles.logout} onPress={async () => { await endSession(); nav.reset({ index: 0, routes: [{ name: "Login" }] }); }}>
+          <Pressable accessibilityRole="button" style={styles.logout} onPress={async () => { await endSession(); nav.reset({ index: 0, routes: [{ name: "Login" }] }); }}>
             <Text style={styles.logoutTxt}>{t("Logout")}</Text>
           </Pressable>
         </View>
@@ -51,6 +53,7 @@ export default function Header() {
         </ScrollView>
       </View>
       <View style={styles.langRow}><LanguageSwitcher /></View>
+      <ReadScreenButton />
     </View>
   );
 }
@@ -58,13 +61,13 @@ export default function Header() {
 const makeStyles = (colors: Colors) => StyleSheet.create({
   bar: { paddingHorizontal: 16, paddingBottom: 8, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.border },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  logoWrap: { backgroundColor: colors.logoBg, borderRadius: 10, paddingHorizontal: colors.logoBg === "transparent" ? 0 : 8 },
+  logoWrap: { backgroundColor: colors.logoBg, borderRadius: 12, paddingHorizontal: colors.logoBg === "transparent" ? 0 : 8 },
   logo: { height: 38, width: 108 },
   right: { flexDirection: "row", alignItems: "center", gap: 8 },
   logout: { height: 36, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: colors.tealBorder, justifyContent: "center" },
   logoutTxt: { color: colors.teal, fontSize: 13, fontFamily: fonts.bold },
   row2: { flexDirection: "row", marginTop: 10 },
-  tab: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 10 },
+  tab: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 12 },
   tabOn: { backgroundColor: colors.tealLight },
   tabTxt: { color: colors.muted, fontSize: 13.5, fontFamily: fonts.semibold },
   langRow: { alignItems: "flex-end", marginTop: 8 },

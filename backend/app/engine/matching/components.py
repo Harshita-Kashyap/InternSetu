@@ -3,11 +3,14 @@
 Only meaningful for eligible pairs. Rules follow the handover (section 3E).
 """
 
-WEIGHTS = {"skills": 0.30, "education": 0.25, "location": 0.20,
-           "interest_sector": 0.15, "role": 0.05, "preference": 0.05}
+# PMIS pays a fixed stipend and fixed 6/9-month duration, so "preference" (stipend/duration) no longer scores.
+# Role is not asked in the apps (#38), so it carries no weight: its 10 points moved to skills (+5) and industry (+5).
+# Keep the "role" key at 0 so it can be switched back on after the pilot. (Older defaults: 30/20/20/20/10/0, 30/25/20/15/5/5.)
+WEIGHTS = {"skills": 0.35, "education": 0.20, "location": 0.20,
+           "interest_sector": 0.25, "role": 0.0, "preference": 0.0}
 
 DURATION_WEEKS = {"4 weeks": 4, "6 weeks": 6, "8 weeks": 8, "10 weeks": 10, "12 weeks": 12,
-                  "1 month": 4, "2 months": 8, "3 months": 12, "4 months": 16, "6 months": 24}
+                  "1 month": 4, "2 months": 8, "3 months": 12, "4 months": 16, "6 months": 24, "9 months": 36}
 
 
 def _weeks(text):

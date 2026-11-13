@@ -4,6 +4,7 @@ import LanguageSwitcher from "../components/LanguageSwitcher";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme, Colors, shadow } from "../theme";
 import FadeIn from "../components/FadeIn";
+import ReadScreenButton from "../components/ReadScreenButton";
 
 function Orb({ size, top, left, right, delay }: { size: number; top?: number; left?: number; right?: number; delay: number }) {
   const v = useRef(new Animated.Value(0)).current;
@@ -37,7 +38,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <FadeIn style={{ alignItems: "center" }}>
             <Image source={require("../../assets/logo.png")} style={styles.logo} resizeMode="contain" />
           </FadeIn>
-          <FadeIn delay={120} style={styles.card}>{children}</FadeIn>
+          <FadeIn delay={120} style={styles.card}><ReadScreenButton />{children}</FadeIn>
           <View style={{ height: 20 }} />
         </ScrollView>
       </KeyboardAvoidingView>
@@ -48,5 +49,5 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 const makeStyles = (colors: Colors) => StyleSheet.create({
   scroll: { flexGrow: 1, justifyContent: "center", padding: 20 },
   logo: { width: 220, height: 90, marginBottom: 14 },
-  card: { backgroundColor: colors.white, borderRadius: 20, padding: 26, borderWidth: 1, borderColor: "rgba(37,107,115,0.1)", ...shadow },
+  card: { backgroundColor: colors.white, borderRadius: 16, padding: 26, borderWidth: 1, borderColor: "rgba(37,107,115,0.1)", ...shadow },
 });

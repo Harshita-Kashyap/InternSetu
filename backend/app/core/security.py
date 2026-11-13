@@ -32,10 +32,11 @@ def dummy_hash() -> str:
     return _dummy_hash
 
 
-def create_access_token(user_id: int, role: str, expires_minutes: int | None = None) -> str:
+def create_access_token(user_id: int, role: str, expires_minutes: int | None = None, session_start: int | None = None) -> str:
     minutes = settings.access_token_expire_minutes if expires_minutes is None else expires_minutes
     now = utcnow()
-    payload = {"sub": str(user_id), "role": role, "iat": now, "exp": now + timedelta(minutes=minutes)}
+    # "ss" = when this login session first started (kept when the token is renewed, so renewals cannot go on forever)
+    payload = {"sub": str(user_id), "role": role, "iat": now, "exp": now + timedelta(minutes=minutes), "ss": session_start or int(now.timestamp())}
     return jwt.encode(payload, settings.secret_key, algorithm=ALGORITHM)
 
 

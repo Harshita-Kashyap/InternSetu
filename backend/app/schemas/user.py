@@ -4,9 +4,11 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
+from app.core.languages import LanguageCode
+
 
 class SettingsUpdate(BaseModel):
-    preferred_language: Literal["en", "hi", "mr"]  # only used by the apps to pick the UI language
+    preferred_language: LanguageCode  # only used by the apps to pick the UI language
 
 
 class UserResponse(BaseModel):

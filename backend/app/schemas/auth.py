@@ -5,7 +5,7 @@ from pydantic import BaseModel, EmailStr, Field, field_validator, model_validato
 from app.core.validators import clean_name, normalize_mobile, validate_password
 from app.schemas.user import UserResponse
 
-LanguageCode = Literal["en", "hi", "mr"]  # mr (Marathi) is the default regional language (TBD-7)
+from app.core.languages import LanguageCode  # en, hi, mr, bn, te, ta, gu (server text falls back to English where untranslated)
 
 
 def _blank_to_none(v):
@@ -15,14 +15,16 @@ def _blank_to_none(v):
 
 
 class RegisterRequest(BaseModel):
+    """Sign-up needs a real email, a password, and the 6-digit code emailed by POST /auth/register-code."""
     full_name: str = Field(max_length=150)
-    email: EmailStr | None = None
-    mobile: str | None = None
+    email: EmailStr
+    mobile: str | None = None   # optional extra contact; login is by email or mobile + password
     password: str
+    code: str = Field(min_length=6, max_length=6)
     consent: bool
     preferred_language: LanguageCode = "en"
 
-    @field_validator("email", "mobile", mode="before")
+    @field_validator("mobile", mode="before")
     @classmethod
     def blank_to_none(cls, v):
         return _blank_to_none(v)
@@ -35,7 +37,7 @@ class RegisterRequest(BaseModel):
     @field_validator("email")
     @classmethod
     def check_email(cls, v):
-        return v.lower() if v else v
+        return v.lower()
 
     @field_validator("mobile")
     @classmethod
@@ -49,16 +51,19 @@ class RegisterRequest(BaseModel):
 
     @field_validator("consent")
     @classmethod
-    def check_consent(cls, v: bool) -> bool:
-        if v is not True:
-            raise ValueError("You must accept the privacy notice to register.")
+    def must_consent(cls, v: bool) -> bool:
+        if not v:
+            raise ValueError("You must agree to the privacy notice to register.")
         return v
 
-    @model_validator(mode="after")
-    def need_contact(self):
-        if not self.email and not self.mobile:
-            raise ValueError("Enter an email or a mobile number.")
-        return self
+
+class RegisterCodeRequest(BaseModel):
+    email: EmailStr
+
+    @field_validator("email")
+    @classmethod
+    def lower(cls, v):
+        return v.lower()
 
 
 class LoginRequest(BaseModel):
@@ -85,6 +90,17 @@ class ChangePasswordRequest(BaseModel):
 
 class ForgotPasswordRequest(BaseModel):
     identifier: str = Field(min_length=1, max_length=255)
+
+
+class ResetPasswordRequest(BaseModel):
+    identifier: str = Field(min_length=1, max_length=255)   # the email the code was sent to
+    code: str = Field(min_length=6, max_length=6)
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def check_new_password(cls, v: str) -> str:
+        return validate_password(v)
 
 
 class MessageResponse(BaseModel):

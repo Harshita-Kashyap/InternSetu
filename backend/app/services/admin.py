@@ -19,7 +19,7 @@ from app.services import engine_adapter as ea
 from app.services.dataset_parse import parse_duration
 from app.services.recommendations import get_engine, reset_engine
 
-DEFAULT_WEIGHTS = {"skills": 30.0, "education": 25.0, "location": 20.0, "interest_sector": 15.0, "role": 5.0, "preference": 5.0}
+DEFAULT_WEIGHTS = {"skills": 35.0, "education": 20.0, "location": 20.0, "interest_sector": 25.0, "role": 0.0, "preference": 0.0}
 _KEY = "scoring_weights"
 
 
@@ -178,7 +178,15 @@ def _name_maps(db: Session) -> dict[str, dict[str, str]]:
     return maps
 
 
+MAX_IMPORT_ROWS = 5000
+MAX_IMPORT_BYTES = 5_000_000
+MAX_MANDATORY_SKILLS = 2        # tracker #4: only 1-2 hard-mandatory skills per listing
+MAX_TEXT = 200
+
+
 def import_internships_csv(db: Session, text: str, dry_run: bool, skip_invalid: bool, is_synthetic: bool) -> dict:
+    if len(text.encode("utf-8")) > MAX_IMPORT_BYTES:
+        raise ApiError(413, "csv_too_large", f"CSV is larger than {MAX_IMPORT_BYTES // 1_000_000} MB. Split it into smaller files.")
     reader = csv.DictReader(io.StringIO(text.lstrip("\ufeff")))
     cols = {(c or "").strip().lower() for c in (reader.fieldnames or [])}
     required = {"company_name", "title", "sector", "role", "location", "min_education", "duration", "mandatory_skills"}
@@ -187,6 +195,8 @@ def import_internships_csv(db: Session, text: str, dry_run: bool, skip_invalid: 
     maps = _name_maps(db)
     nxt = (db.scalar(select(func.count()).select_from(Internship)) or 0) + 1
     good, errors = [], []
+    seen_ext, seen_key = set(), set()
+    existing_key = {(c, t, l) for c, t, l in db.execute(select(Internship.company_name, Internship.title, Internship.location_id))}
 
     def ref(kind: str, value: str, row_no: int, errs: list, required_=True):
         v = (value or "").strip()
@@ -200,11 +210,15 @@ def import_internships_csv(db: Session, text: str, dry_run: bool, skip_invalid: 
         return i
 
     for row_no, raw in enumerate(reader, start=2):
+        if row_no - 1 > MAX_IMPORT_ROWS:
+            raise ApiError(422, "csv_too_many_rows", f"CSV has more than {MAX_IMPORT_ROWS} rows. Split it into smaller files.")
         r = {(k or "").strip().lower(): (v or "").strip() for k, v in raw.items()}
         errs: list[str] = []
         for c in ("company_name", "title"):
             if not r.get(c):
                 errs.append(f"{c} is required")
+            elif len(r[c]) > MAX_TEXT:
+                errs.append(f"{c} is longer than {MAX_TEXT} characters")
         sector, role = ref("sector", r.get("sector"), row_no, errs), ref("role", r.get("role"), row_no, errs)
         loc, edu = ref("city", r.get("location"), row_no, errs), ref("education_level", r.get("min_education"), row_no, errs)
         deg = ref("degree", r.get("degree"), row_no, errs, False)
@@ -224,12 +238,31 @@ def import_internships_csv(db: Session, text: str, dry_run: bool, skip_invalid: 
             skills[kind] = ids
         if not skills["mandatory"] and not any("skill" in e for e in errs):
             errs.append("at least one mandatory skill is required")
+        if len(skills["mandatory"]) > MAX_MANDATORY_SKILLS:
+            errs.append(f"too many mandatory skills ({len(skills['mandatory'])}): keep at most {MAX_MANDATORY_SKILLS} and move the rest to preferred_skills")
+        if weeks and weeks > 52:
+            errs.append("duration is longer than 12 months")
+        if r.get("application_url") and not r["application_url"].lower().startswith(("http://", "https://")):
+            errs.append("application_url must start with http:// or https://")
+        if r.get("external_id"):
+            if r["external_id"] in seen_ext:
+                errs.append(f"external_id '{r['external_id']}' appears more than once in this file")
+            seen_ext.add(r["external_id"])
+        key = (r.get("company_name"), r.get("title"), loc)
+        if loc and key[0] and key[1]:
+            if key in seen_key:
+                errs.append("duplicate of another row in this file (same company, title and location)")
+            elif key in existing_key and not r.get("external_id"):
+                errs.append("this company, title and location already exist: add its external_id to update it")
+            seen_key.add(key)
         stipend = None
         if r.get("stipend_inr_per_month"):
             if r["stipend_inr_per_month"].isdigit():
                 stipend = int(r["stipend_inr_per_month"])
             else:
                 errs.append("stipend_inr_per_month must be a whole number")
+            if stipend is not None and stipend > 100000:
+                errs.append("stipend_inr_per_month looks too high (max 100000)")
         if errs:
             errors.append({"row": row_no, "errors": errs})
             continue

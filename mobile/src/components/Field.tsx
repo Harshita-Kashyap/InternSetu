@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, TextInputProps, View } from "react-native";
 import { useTheme, Colors, fonts } from "../theme";
+import MicButton from "./MicButton";
 
-type Props = TextInputProps & { label: string; secure?: boolean; rightLabel?: string; onRightPress?: () => void; hint?: string };
+type Props = TextInputProps & { label: string; secure?: boolean; rightLabel?: string; onRightPress?: () => void; hint?: string; voice?: boolean };
 
-export default function Field({ label, secure, rightLabel, onRightPress, hint, ...rest }: Props) {
+export default function Field({ label, secure, rightLabel, onRightPress, hint, voice, ...rest }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [focus, setFocus] = useState(false);
@@ -14,25 +15,27 @@ export default function Field({ label, secure, rightLabel, onRightPress, hint, .
       <View style={styles.row}>
         <Text style={styles.label}>{label}</Text>
         {rightLabel ? (
-          <Pressable onPress={onRightPress} hitSlop={8}>
+          <Pressable onPress={onRightPress} hitSlop={8} accessibilityRole="button">
             <Text style={styles.link}>{rightLabel}</Text>
           </Pressable>
         ) : null}
       </View>
-      <View>
+      <View style={voice ? { flexDirection: "row", alignItems: "center" } : undefined}>
         <TextInput
+          accessibilityLabel={label}
           {...rest}
           secureTextEntry={secure && hidden}
           placeholderTextColor={colors.faint}
           onFocus={() => setFocus(true)}
           onBlur={() => setFocus(false)}
-          style={[styles.input, focus && styles.focus, secure && { paddingRight: 70 }]}
+          style={[styles.input, voice && { flex: 1 }, focus && styles.focus, secure && { paddingRight: 70 }]}
         />
         {secure ? (
-          <Pressable style={styles.show} onPress={() => setHidden(!hidden)} hitSlop={8}>
+          <Pressable style={styles.show} onPress={() => setHidden(!hidden)} hitSlop={8} accessibilityRole="button">
             <Text style={styles.link}>{hidden ? "Show" : "Hide"}</Text>
           </Pressable>
         ) : null}
+        {voice ? <MicButton onText={(x) => rest.onChangeText?.(x)} /> : null}
       </View>
       {hint ? <Text style={styles.hint}>{hint}</Text> : null}
     </View>
@@ -44,7 +47,7 @@ const makeStyles = (colors: Colors) => StyleSheet.create({
   label: { fontSize: 14, fontFamily: fonts.semibold, color: colors.text },
   link: { fontSize: 12.5, fontFamily: fonts.bold, color: colors.teal },
   input: {
-    height: 52, borderRadius: 10, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.creamLight,
+    height: 52, borderRadius: 12, borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.creamLight,
     paddingHorizontal: 15, fontSize: 14, fontFamily: fonts.body, color: colors.text,
   },
   focus: { borderColor: colors.teal, backgroundColor: colors.tealLight },

@@ -91,7 +91,7 @@ const makeStyles = (colors: Colors) =>
   StyleSheet.create({
     btn: {
       height: 52,
-      borderRadius: 10,
+      borderRadius: 12,
       backgroundColor: colors.teal,
       alignItems: "center",
       justifyContent: "center",
@@ -104,7 +104,7 @@ const makeStyles = (colors: Colors) =>
 
     outline: {
       backgroundColor: "transparent",
-      borderWidth: 1,
+      borderWidth: 1.5,
       borderColor: colors.tealBorder,
       shadowOpacity: 0,
       elevation: 0,

@@ -39,6 +39,10 @@ def auth_header(token: str) -> dict:
 def register(client, **overrides):
     """POST /auth/register with GOOD plus overrides; a value of None removes that field."""
     body = {k: v for k, v in {**GOOD, **overrides}.items() if v is not None}
+    if body.get("email") and "code" not in body:
+        from app.core.config import settings
+        from app.core.otp import make_code
+        body["code"] = make_code(settings.secret_key, 0, body["email"].strip().lower(), "signup")
     return client.post(f"{API}/auth/register", json=body)
 
 
@@ -140,3 +144,12 @@ def admin(client):
         db.commit()
     tok = client.post(f"{API}/auth/login", json={"identifier": "admin@test.com", "password": "Passw0rd!"}).json()["access_token"]
     return auth_header(tok)
+
+
+@pytest.fixture(autouse=True)
+def _fresh_otp_state():
+    """Codes are single use and attempts are counted in memory; start every test with a clean slate."""
+    from app.core.otp import otp_limiter, used_codes
+    otp_limiter.clear()
+    used_codes.clear()
+    yield

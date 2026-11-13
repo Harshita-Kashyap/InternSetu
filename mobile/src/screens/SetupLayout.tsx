@@ -3,14 +3,18 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } fr
 import Header from "../components/Header";
 import Stepper from "../components/Stepper";
 import FadeIn from "../components/FadeIn";
+import Illustration from "../components/Illustration";
+import { useSpeakable } from "../speak";
+import { ArtName } from "../illustrations";
 import { useTheme, Colors, fonts, shadow } from "../theme";
 
-type Props = { step: 1 | 2 | 3; eyebrow: string; title: string; subtitle: string; children: React.ReactNode; footer?: React.ReactNode };
+type Props = { art?: ArtName; step: 1 | 2 | 3; eyebrow: string; title: string; subtitle: string; children: React.ReactNode; footer?: React.ReactNode };
 
 // Shared layout for the 3 profile-setup screens (mirrors .profile-card on the web).
-export default function SetupLayout({ step, eyebrow, title, subtitle, children, footer }: Props) {
+export default function SetupLayout({ art, step, eyebrow, title, subtitle, children, footer }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  useSpeakable(`${title}. ${subtitle}`);
   return (
     <View style={{ flex: 1, backgroundColor: colors.cream }}>
       <Header />
@@ -18,6 +22,7 @@ export default function SetupLayout({ step, eyebrow, title, subtitle, children, 
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <FadeIn style={styles.card}>
             <View style={{ alignItems: "center", marginBottom: 24 }}>
+              {art ? <Illustration name={art} width={210} /> : null}
               <Text style={styles.eyebrow}>{eyebrow}</Text>
               <Text style={styles.h1}>{title}</Text>
               <Text style={styles.sub}>{subtitle}</Text>
@@ -43,7 +48,7 @@ export const makeSetupStyles = (colors: Colors) => StyleSheet.create({
 });
 
 const makeStyles = (colors: Colors) => StyleSheet.create({
-  card: { backgroundColor: colors.white, borderRadius: 20, padding: 22, borderWidth: 1, borderColor: "rgba(37,107,115,0.09)", ...shadow },
+  card: { backgroundColor: colors.white, borderRadius: 16, padding: 22, borderWidth: 1, borderColor: "rgba(37,107,115,0.09)", ...shadow },
   eyebrow: { color: colors.teal, fontSize: 12, fontFamily: fonts.bold, letterSpacing: 1.5, marginBottom: 10 },
   h1: { fontSize: 26, fontFamily: fonts.headXL, color: colors.text, textAlign: "center", letterSpacing: -0.8, lineHeight: 32 },
   sub: { color: colors.muted, fontSize: 14, textAlign: "center", marginTop: 12, lineHeight: 22, fontFamily: fonts.body },

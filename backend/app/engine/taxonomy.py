@@ -8,6 +8,9 @@ class Taxonomy:
         self.edu_rank = {e: i for i, e in enumerate(self.edu_order)}
         self.city_state = {c["id"]: c["state"] for c in tax["indian_locations"]["districts_cities"]}
         self.city_name = {c["id"]: c["name"] for c in tax["indian_locations"]["districts_cities"]}
+        # (lat, lng) for cities that have coordinates (optional; used only to show distances)
+        self.city_coords = {c["id"]: (c["lat"], c["lng"]) for c in tax["indian_locations"]["districts_cities"]
+                            if c.get("lat") is not None and c.get("lng") is not None}
         self.skill_name = {s["id"]: s["name"] for s in tax["skills"]}
         self.skill_category = {s["id"]: s["category"] for s in tax["skills"]}
         self.role_name = {r["id"]: r["name"] for r in tax["roles"]}

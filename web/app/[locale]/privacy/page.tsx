@@ -35,7 +35,7 @@ export default function PrivacyPage() {
         <div className="login-form">
           <h3>{tr("1. Information you provide")}</h3>
           <p>
-            {tr("You may enter your name, email, education, skills, interests and internship preferences.")}
+            {tr("You may enter your name, email, education, skills and internship preferences.")}
           </p>
 
           <h3>{tr("2. How information is used")}</h3>
@@ -55,7 +55,7 @@ export default function PrivacyPage() {
 
           <h3>{tr("5. Your choices")}</h3>
           <p>
-            {tr("You can stop using the demo and clear its browser-stored data. Consent withdrawal controls will be added to account settings as the project develops.")}
+            {tr("You can download your data, withdraw consent or delete your account any time from the Account page.")}
           </p>
 
           <p>

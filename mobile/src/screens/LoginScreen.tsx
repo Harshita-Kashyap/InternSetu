@@ -1,8 +1,10 @@
+import { useSpeakable } from "../speak";
 import React, { useMemo, useState } from "react";
 import { useI18n, Lang } from "../i18n";
 import { StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../types";
+import Illustration from "../components/Illustration";
 import AuthLayout from "./AuthLayout";
 import Field from "../components/Field";
 import Button from "../components/Button";
@@ -38,15 +40,18 @@ export default function LoginScreen({ navigation }: Props) {
     }
   };
 
+  useSpeakable(`${t("Sign in to InternSetu")}. ${t("Your pathway to meaningful internship opportunities.")}`);
+
   return (
     <AuthLayout>
       <View style={styles.head}>
+        <Illustration name="welcome" width={190} />
         <Text style={styles.welcome}>{t("Welcome back")}</Text>
         <Text style={styles.h1}>{t("Sign in to InternSetu")}</Text>
         <Text style={styles.sub}>{t("Your pathway to meaningful internship opportunities.")}</Text>
       </View>
 
-      <Field label={t("Email or mobile")} placeholder={t("Enter your email or mobile number")} value={identifier} onChangeText={setUsername} autoCapitalize="none" autoComplete="username" keyboardType="email-address" />
+      <Field label={t("Email")} placeholder={t("Enter your emailr")} value={identifier} onChangeText={setUsername} autoCapitalize="none" autoComplete="username" keyboardType="email-address" />
       <Field label={t("Password")} placeholder={t("Enter your password")} secure value={password} onChangeText={setPassword}
         rightLabel={t("Forgot password?")} onRightPress={() => navigation.navigate("ForgotPassword")} />
       <Button title={t("Login")} onPress={login} loading={loading} />
@@ -54,6 +59,9 @@ export default function LoginScreen({ navigation }: Props) {
       <View style={styles.reg}>
         <Text style={styles.muted}>{t("Don't have an account?")} </Text>
         <Text style={styles.link} onPress={() => navigation.navigate("Register")}>{t("Register")}</Text>
+      </View>
+      <View style={styles.reg}>
+        <Text style={styles.link} onPress={() => navigation.navigate("PmisCheck")}>{t("Can I apply to PMIS?")}</Text>
       </View>
       <View style={styles.foot}>
         <View style={styles.dot} />

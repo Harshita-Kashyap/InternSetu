@@ -8,6 +8,7 @@ import Field from "../components/Field";
 import Button from "../components/Button";
 import { useToast } from "../components/Toast";
 import { educationLevels } from "../data";
+import { iconFor } from "../illustrations";
 import { loadProfileRemote, saveProfileRemote } from "../store";
 import { useTax } from "../taxo";
 import { ApiError } from "../api";
@@ -53,6 +54,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
   return (
     <SetupLayout
+      art="education"
       step={1}
       eyebrow={t("LET'S GET STARTED")}
       title={t("Let's find the right internship for you")}
@@ -68,15 +70,16 @@ export default function ProfileScreen({ navigation }: Props) {
       <Text style={styles.label}>{t("Education level")}</Text>
       <View style={styles.levels}>
         {levels.map((l) => (
-          <Pressable key={l} onPress={() => setEducation(l)} style={[styles.pill, education === l && styles.pillOn]}>
+          <Pressable key={l} onPress={() => setEducation(l)} accessibilityRole="radio" accessibilityState={{ checked: education === l }} accessibilityLabel={l} style={[styles.pill, education === l && styles.pillOn]}>
+            <Text style={styles.pillIcon}>{iconFor(l)}</Text>
             <Text style={[styles.pillTxt, education === l && { color: "#fff" }]}>{l}</Text>
           </Pressable>
         ))}
       </View>
 
-      <Field label={t("Degree / Course")} placeholder={t("e.g. B.Tech, B.Com, BBA")} value={degree} onChangeText={setDegree} />
-      <Field label={t("Field of study")} placeholder={t("e.g. Computer Science")} value={field} onChangeText={setField} />
-      <Field label={t("College / Institution")} placeholder={t("Enter your college or institution")} value={college} onChangeText={setCollege} />
+      <Field voice label={t("Degree / Course")} placeholder={t("e.g. B.Tech, B.Com, BBA")} value={degree} onChangeText={setDegree} />
+      <Field voice label={t("Field of study")} placeholder={t("e.g. Computer Science")} value={field} onChangeText={setField} />
+      <Field voice label={t("College / Institution")} placeholder={t("Enter your college or institution")} value={college} onChangeText={setCollege} />
       <Button title={t("Continue")} arrow onPress={next} loading={saving} />
     </SetupLayout>
   );
@@ -89,7 +92,8 @@ const makeStyles = (colors: Colors) => StyleSheet.create({
   small: { fontSize: 12, color: colors.muted, fontFamily: fonts.semibold },
   label: { fontSize: 14, fontFamily: fonts.semibold, color: colors.text, marginBottom: 10 },
   levels: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 22 },
-  pill: { paddingVertical: 10, paddingHorizontal: 15, borderRadius: 10, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.creamLight },
+  pillIcon: { fontSize: 30, textAlign: "center", marginBottom: 4 },
+  pill: { minWidth: "30%", flexGrow: 1, minHeight: 88, alignItems: "center", justifyContent: "center", paddingVertical: 12, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.creamLight },
   pillOn: { backgroundColor: colors.teal, borderColor: colors.teal },
   pillTxt: { fontSize: 13.5, fontFamily: fonts.semibold, color: colors.text },
 });

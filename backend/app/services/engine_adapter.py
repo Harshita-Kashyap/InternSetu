@@ -4,9 +4,13 @@ Pure Python: no database and no web framework, so it is easy to test.
 The engine works on plain dicts that use taxonomy IDs; these functions build those dicts.
 """
 from collections import Counter, defaultdict
+from app.services.courses import course_links
 
-from app.engine.eligibility.eligibility import check_eligibility
+from app.engine.eligibility.eligibility import check_eligibility, eligibility_reasons
+from app.engine.explanation.reasons import render_all
+from app.engine.geo import haversine_km
 from app.engine.profile import normalize_profile
+from app.engine.tiers import classify
 
 DISCLAIMER = (
     "InternSetu only suggests internships. PMIS and the companies make the final selection. "
@@ -35,7 +39,9 @@ def build_taxonomy(entries: list[dict]) -> dict:
         "sectors": plain("sector"),
         "interests": plain("interest"),
         "indian_locations": {"districts_cities": [
-            {"id": e["id"], "name": e["name"], "state": e["parent_id"]} for e in by["city"]]},
+            {"id": e["id"], "name": e["name"], "state": e["parent_id"],
+             **({"lat": e["lat"], "lng": e["lng"]} if e.get("lat") is not None and e.get("lng") is not None else {})}
+            for e in by["city"]]},
     }
 
 
@@ -76,7 +82,6 @@ def profile_dict(p) -> dict:
         "education": {"education_level": p.education_level_id, "degree": p.degree_id,
                       "field_of_study": p.field_of_study_id},
         "skills": ids("skill"),
-        "interests": ids("interest"),
         "preferred_roles": ids("preferred_role"),
         "location_preferences": {
             "home_location": p.home_location_id,
@@ -122,7 +127,9 @@ def enrich(rec: dict, engine, cand: dict, portal_url: str) -> dict:
     """Add the extra fields the apps need to one engine recommendation."""
     intern = engine.internships[rec["internship_id"]]
     out = dict(rec)
+    out["tier_label"] = "Starter" if rec.get("starter") else "Close match" if rec.get("tier") == "near" else "Eligible"
     out.update(internship_facts(engine, intern, portal_url))
+    out["distance_km"] = distance_km(engine.tax, cand["location_preferences"].get("home_location"), intern["location"])
     out["skill_gap"] = {**rec["skill_gap"], **skill_gap_ids(cand, intern)}
     return out
 
@@ -150,7 +157,7 @@ def nearest_internships(engine, profile: dict, k: int = 3) -> list[dict]:
             continue
         req = i["education_requirements"].get("education_level")
         gap = max(0, tax.rank(req) - mine) if req else 0
-        rows.append((gap, len(missing), iid, reason, missing))
+        rows.append((gap, len(missing), iid, eligibility_reasons(cand, i, tax), missing))
     rows.sort(key=lambda r: (r[0], r[1], r[2]))
     return [
         {
@@ -159,7 +166,66 @@ def nearest_internships(engine, profile: dict, k: int = 3) -> list[dict]:
             "location_name": tax.city_name.get(engine.internships[iid]["location"], engine.internships[iid]["location"]),
             "missing_mandatory_ids": missing,
             "missing_mandatory": [tax.skill_name.get(s, s) for s in missing],
-            "education_gap_levels": gap, "reason": reason,
+            "education_gap_levels": gap, "reason": "; ".join(render_all(codes)), "reason_codes": codes,
         }
-        for gap, _, iid, reason, missing in rows[:k]
+        for gap, _, iid, codes, missing in rows[:k]
     ]
+
+
+def skill_unlocks(engine, cand: dict, limit: int = 8) -> list[dict]:
+    """"Learn X to unlock N internships": for internships whose education rule you meet and that miss exactly
+    ONE mandatory skill, count how many each missing skill would open up."""
+    tax = engine.tax
+    counts: Counter = Counter()
+    for i in engine.internships.values():
+        c = classify(cand, i, tax, max_missing=1)
+        if c and c[0] == "near":
+            counts.update(s for s in i["mandatory_skills"] if s not in set(cand["skills"]))
+    ranked = sorted(counts.items(), key=lambda kv: (-kv[1], tax.skill_name.get(kv[0], kv[0])))
+    return [{"skill_id": s, "skill": tax.skill_name.get(s, s), "unlocks": n, "course_links": course_links(tax.skill_name.get(s, s))}
+            for s, n in ranked[:limit]]
+
+
+# ----------------------------------------------------------------------------- location (tracker #20)
+NEARBY_KM = 100        # "near your home": same place, or within this many km (straight line)
+FEW_NEARBY = 3         # fewer than this many reachable internships nearby -> tell the person
+
+FACILITY_GROUPS = {    # filter keys -> exact facility text in the data (a person picks keys, never raw text)
+    "food": "Meals provided on working days",
+    "stay": "Accommodation assistance for outstation interns",
+    "transport": "Company transport from nearby town",
+    "travel_allowance": "Travel allowance",
+}
+
+
+def distance_km(tax, from_city: str | None, to_city: str | None) -> int | None:
+    """Whole km between two cities; 0 for the same place; None when a coordinate is unknown."""
+    if not from_city or not to_city:
+        return None
+    if from_city == to_city:
+        return 0
+    d = haversine_km(tax.city_coords.get(from_city), tax.city_coords.get(to_city))
+    return None if d is None else int(round(d))
+
+
+def has_facilities(intern: dict, keys) -> bool:
+    """True when the internship offers EVERY requested facility (unknown keys are ignored)."""
+    want = [FACILITY_GROUPS[k] for k in keys if k in FACILITY_GROUPS]
+    have = set(intern.get("facilities") or [])
+    return all(w in have for w in want)
+
+
+def nearby_summary(engine, cand: dict, radius_km: int = NEARBY_KM) -> dict:
+    """How many internships the person could actually take that are near home, for people who prefer to stay near.
+
+    Counts eligible + close-match internships within `radius_km` of the home place (unknown distance counts as
+    not near). `few` is only True when the person is NOT willing to relocate and fewer than FEW_NEARBY exist;
+    nothing is ever removed from the results because of this (no hard zero)."""
+    lp = cand["location_preferences"]
+    home, tax = lp.get("home_location"), engine.tax
+    count = 0
+    for i in engine.internships.values():
+        d = distance_km(tax, home, i["location"])
+        if d is not None and d <= radius_km and classify(cand, i, tax):
+            count += 1
+    return {"nearby_count": count, "few_nearby": (not lp.get("willing_to_relocate")) and count < FEW_NEARBY}

@@ -1,3 +1,4 @@
+from app.models.audit import AdminAudit
 from app.models.consent import Consent
 from app.models.internship import Internship, InternshipSkill
 from app.models.profile import CandidateLink, CandidateProfile
@@ -9,5 +10,5 @@ from app.models.user import User
 __all__ = [
     "User", "Consent", "TaxonomyEntry", "TaxonomySynonym", "FlaggedValue",
     "Internship", "InternshipSkill", "CandidateProfile", "CandidateLink",
-    "SavedInternship", "AppSetting",
+    "SavedInternship", "AppSetting", "AdminAudit",
 ]

@@ -5,6 +5,7 @@ import { useT } from "../../../../i18n/useT";
 import { useRouter } from "../../../../i18n/navigation";
 import Header from "../../../components/Header";
 import ChipPicker from "../../../components/ChipPicker";
+import GroupedSkillPicker from "../../../components/GroupedSkillPicker";
 import SelectOther from "../../../components/SelectOther";
 import { useToast } from "../../../components/Toast";
 import { api } from "../../../lib/api";
@@ -21,8 +22,8 @@ export default function EditProfilePage() {
   const levels = useTax("education_level").names;
   const degrees = useTax("degree").names;
   const fields = useTax("field_of_study").names;
-  const skillNames = useTax("skill").names;
-  const interestNames = useTax("interest").names;
+  const skillItems = useTax("skill").items;
+  const skillCats = useTax("skill_category").items;
   const cities = useTax("city").names;
   const sectors = useTax("sector").names;
   const [orig, setOrig] = useState<Profile | null>(null);
@@ -35,11 +36,11 @@ export default function EditProfilePage() {
   useEffect(() => {
     Promise.all([loadProfileRemote(), api.getProfile().catch(() => null)]).then(([lp, ap]) => {
       setOrig(lp); setP(lp); setWasComplete(ap?.status === "complete");
-    });
+    }).catch(() => { setOrig({}); setErr(tr("Could not load your profile. Please try again.")); });
   }, []);
 
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) => { setSaved(false); setP((c) => ({ ...c, [k]: v })); };
-  const flip = (k: "skills" | "interests" | "domains" | "preferredLocations") => (v: string) =>
+  const flip = (k: "skills" | "domains" | "preferredLocations") => (v: string) =>
     set(k, ((p[k] as string[] | undefined) ?? []).includes(v) ? (p[k] as string[]).filter((x) => x !== v) : [...((p[k] as string[] | undefined) ?? []), v]);
 
   const save = async () => {
@@ -60,6 +61,15 @@ export default function EditProfilePage() {
     { id: "nearby", title: tr("Nearby only") }, { id: "selected", title: tr("Selected cities") }, { id: "anywhere", title: tr("Anywhere in India") },
   ];
   const dirty = JSON.stringify(orig) !== JSON.stringify(p);
+
+  if (orig === null) {
+    return (
+      <main className="profile-page">
+        <Header label={tr("Edit profile")} />
+        <section className="profile-container"><p className="muted" role="status">{tr("Loading…")}</p></section>
+      </main>
+    );
+  }
 
   return (
     <main className="profile-page">
@@ -90,8 +100,7 @@ export default function EditProfilePage() {
           </fieldset>
 
           <fieldset className="edit-section"><legend>{tr("Skills")}</legend>
-            <ChipPicker kind="skill" title={tr("Skills")} hint={tr("Select all that apply.")} options={skillNames} selected={p.skills ?? []} onToggle={flip("skills")} />
-            <ChipPicker kind="interest" title={tr("Interests")} hint={tr("Select all that apply.")} options={interestNames} selected={p.interests ?? []} onToggle={flip("interests")} />
+            <GroupedSkillPicker title={tr("Skills")} hint={tr("Select all that apply.")} skills={skillItems} categories={skillCats} selected={p.skills ?? []} onToggle={flip("skills")} onClear={() => set("skills", [])} />
           </fieldset>
 
           <fieldset className="edit-section"><legend>{tr("Location and preferences")}</legend>

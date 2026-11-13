@@ -5,8 +5,9 @@ import { useRouter } from "../../../i18n/navigation";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
 import ThemeToggle from "../../components/ThemeToggle";
 import { useToast } from "../../components/Toast";
-import { api, ApiError, AdminJson, AdminTaxEntry } from "../../lib/api";
+import { api, ApiError, AdminJson, AdminTaxEntry, AuditItem } from "../../lib/api";
 import { endSession } from "../../lib/store";
+import { ACTION_TEXT, describeAudit } from "../../lib/audit";
 import { useT } from "../../../i18n/useT";
 
 type Tr = (s: string) => string;
@@ -16,16 +17,17 @@ const WKEYS: [string, string, string, string][] = [
   ["skills", "Skills", "How well the student's skills match what the internship asks for.", "#2b8a90"],
   ["education", "Education", "Whether the student's degree and level fit the internship.", "#6b7fd7"],
   ["location", "Location", "Whether the internship is in a city the student prefers.", "#e9a23b"],
-  ["interest_sector", "Interest / Sector", "Whether the industry matches the student's interests.", "#d9577a"],
-  ["role", "Role", "Whether the job role matches what the student wants to do.", "#4caf8a"],
+  ["interest_sector", "Industry match", "Whether the internship's industry is one the student chose.", "#d9577a"],
+  ["role", "Role", "Not used for now: students are not asked about job roles. Keep at 0.", "#4caf8a"],
   ["preference", "Other preferences", "Extras such as stipend, duration and work mode.", "#9b6bd1"],
 ];
-const TYPES = ["skill", "interest", "sector", "role", "city", "degree", "field_of_study", "education_level"];
+const TYPES = ["skill", "sector", "role", "city", "degree", "field_of_study", "education_level"];
 const TABS: { id: string; icon: string; blurb: string }[] = [
   { id: "Overview", icon: "M3 12l9-9 9 9M5 10v10h5v-6h4v6h5V10", blurb: "A quick health check of the whole platform: how many students, internships and items need your attention." },
   { id: "Scoring weights", icon: "M4 21V14M4 10V3M12 21V12M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6", blurb: "Decide what matters most when the app suggests internships to students. Higher % means that factor counts more in the match score." },
-  { id: "Taxonomy", icon: "M4 6h16M4 12h16M4 18h10", blurb: "The master list of skills, cities, sectors and so on that students pick from. Add new entries, add alternate spellings (synonyms) and review unknown values students typed." },
+  { id: "Lists", icon: "M4 6h16M4 12h16M4 18h10", blurb: "The master list of skills, cities, sectors and so on that students pick from. Add new entries, add alternate spellings (synonyms) and review unknown values students typed." },
   { id: "Internships", icon: "M3 7h18v13H3zM8 7V4h8v3", blurb: "Add internships in bulk by uploading a CSV file, and switch any listing on or off. Switched-off listings stop appearing in student recommendations." },
+  { id: "Audit log", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12h6M9 16h4", blurb: "A record of every change made in this console: who changed what, and when. Nothing here can be edited." },
   { id: "Evaluation", icon: "M3 3v18h18M7 15l4-4 3 3 5-6", blurb: "A test run that compares the different matching methods on sample students, so you can see which one is faster and gives better matches." },
 ];
 
@@ -91,8 +93,9 @@ export default function AdminPage() {
         <About id={tab} tr={tr} />
         {tab === "Overview" && <Overview fail={fail} go={setTab} />}
         {tab === "Scoring weights" && <Weights fail={fail} show={show} />}
-        {tab === "Taxonomy" && <Taxonomy fail={fail} show={show} />}
+        {tab === "Lists" && <Taxonomy fail={fail} show={show} />}
         {tab === "Internships" && <Internships fail={fail} show={show} />}
+        {tab === "Audit log" && <AuditLog fail={fail} />}
         {tab === "Evaluation" && <Evaluation fail={fail} />}
       </main>
     </div>
@@ -123,7 +126,7 @@ function Overview({ fail, go }: P) {
   const totalProfiles = s.profiles.real_complete + s.profiles.real_draft;
   const pct = totalProfiles ? Math.round((s.profiles.real_complete / totalProfiles) * 100) : 0;
   const todo: { t: string; tab: string }[] = [];
-  if (s.flagged_pending) todo.push({ t: `${s.flagged_pending} ${tr("unknown values from students are waiting for review")}`, tab: "Taxonomy" });
+  if (s.flagged_pending) todo.push({ t: `${s.flagged_pending} ${tr("unknown values from students are waiting for review")}`, tab: "Lists" });
   if (s.internships.inactive) todo.push({ t: `${s.internships.inactive} ${tr("internships are switched off")}`, tab: "Internships" });
   if (s.profiles.real_draft) todo.push({ t: `${s.profiles.real_draft} ${tr("student profiles are not finished yet")}`, tab: "Overview" });
   return (
@@ -287,7 +290,7 @@ function Internships({ fail, show }: P) {
         </label>
         <details className="ad-details"><summary>{tr("Advanced: expected CSV columns")}</summary><code>company_name, title, description, sector, role, location, min_education, degree, field_of_study, duration, stipend_inr_per_month, mandatory_skills, preferred_skills (;), application_url, facilities (;)</code></details>
         <div className="ad-row wrap">
-          <label className="ad-check"><input type="checkbox" checked={synth} onChange={(e) => setSynth(e.target.checked)} /> {tr("Mark as synthetic data")}</label>
+          <label className="ad-check"><input type="checkbox" checked={synth} onChange={(e) => setSynth(e.target.checked)} /> {tr("Mark as sample data")}</label>
           <label className="ad-check"><input type="checkbox" checked={skip} onChange={(e) => setSkip(e.target.checked)} /> {tr("Skip invalid rows")}</label>
         </div>
         <div className="ad-row">
@@ -324,6 +327,42 @@ function Internships({ fail, show }: P) {
         {list && list.total > list.items.length && <small className="ad-muted">{tr("Showing the first 20. Use search to find others.")}</small>}
       </div>
     </>
+  );
+}
+
+function AuditLog({ fail }: P) {
+  const tr = useT();
+  const [items, setItems] = useState<AuditItem[] | null>(null);
+  const [more, setMore] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const load = useCallback((offset: number) => {
+    setBusy(true);
+    api.adminAudit(50, offset).then((r) => { setItems((cur) => (offset ? [...(cur || []), ...r.items] : r.items)); setMore(r.items.length === 50); }).catch(fail).finally(() => setBusy(false));
+  }, [fail]);
+  useEffect(() => { load(0); }, [load]);
+  if (!items) return <div className="ad-card"><p className="ad-muted">{tr("Loading…")}</p></div>;
+  return (
+    <div className="ad-card">
+      {items.length === 0 ? <p className="ad-muted">{tr("No changes have been recorded yet.")}</p> : (
+        <div className="ad-table-wrap">
+          <table className="ad-table">
+            <thead><tr><th>{tr("When")}</th><th>{tr("Admin")}</th><th>{tr("What changed")}</th><th>{tr("Target")}</th><th>{tr("Details")}</th></tr></thead>
+            <tbody>
+              {items.map((a) => (
+                <tr key={a.id}>
+                  <td>{new Date(a.created_at).toLocaleString()}</td>
+                  <td>{a.admin_email || "–"}</td>
+                  <td>{ACTION_TEXT[a.action] ? tr(ACTION_TEXT[a.action]) : a.action}</td>
+                  <td>{a.target || "–"}</td>
+                  <td>{describeAudit(a, tr)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {more && <button className="ad-btn ghost" disabled={busy} onClick={() => load(items.length)}>{tr("Load more")}</button>}
+    </div>
   );
 }
 

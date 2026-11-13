@@ -3,6 +3,7 @@ import { useI18n } from "../i18n";
 import { Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../types";
+import Illustration from "../components/Illustration";
 import SetupLayout, { useSetupStyles } from "./SetupLayout";
 import Choice from "../components/Choice";
 import TaxPicker from "../components/TaxPicker";
@@ -55,7 +56,7 @@ export default function PreferencesScreen({ navigation }: Props) {
   };
 
   return (
-    <SetupLayout step={3} eyebrow={t("STEP 3 OF 3")} title={t("Where would you like to work?")} subtitle={t("Location is a preference, not a rule: internships elsewhere can still match, they just score a little lower.")}>
+    <SetupLayout art="location" step={3} eyebrow={t("STEP 3 OF 3")} title={t("Where would you like to work?")} subtitle={t("Location is a preference, not a rule: internships elsewhere can still match, they just score a little lower.")}>
       <Text style={s.h2}>{t("Where do you live?")}</Text>
       <TaxPicker single options={city.names} loading={city.loading} selected={home ? [home] : []} onChange={(v) => setHome(v[0] || "")} placeholder={t("Search your city")} />
 
@@ -63,9 +64,9 @@ export default function PreferencesScreen({ navigation }: Props) {
         <Text style={s.h2}>{t("How far are you willing to go?")}</Text>
         <Text style={s.p}>{t("This decides how much location affects your matches.")}</Text>
         <View style={s.grid}>
-          <Choice wide mark="" selected={mode === "nearby"} onPress={() => setMode("nearby")} label={t("Nearby only")} sub={t("Opportunities in or close to my city")} />
-          <Choice wide mark="" selected={mode === "selected"} onPress={() => setMode("selected")} label={t("Selected cities")} sub={t("My city plus cities I choose")} />
-          <Choice wide mark="" selected={mode === "anywhere"} onPress={() => setMode("anywhere")} label={t("Anywhere in India")} sub={t("I am willing to relocate")} />
+          <Choice wide mark="🏠" selected={mode === "nearby"} onPress={() => setMode("nearby")} label={t("Nearby only")} sub={t("Opportunities in or close to my city")} />
+          <Choice wide mark="📍" selected={mode === "selected"} onPress={() => setMode("selected")} label={t("Selected cities")} sub={t("My city plus cities I choose")} />
+          <Choice wide mark="🇮🇳" selected={mode === "anywhere"} onPress={() => setMode("anywhere")} label={t("Anywhere in India")} sub={t("I can move to another city")} />
         </View>
       </View>
 
@@ -78,6 +79,7 @@ export default function PreferencesScreen({ navigation }: Props) {
       ) : null}
 
       <View style={s.section}>
+        <View style={{ alignItems: "center" }}><Illustration name="sector" width={180} /></View>
         <Text style={s.h2}>{t("Preferred domains")}</Text>
         <Text style={s.p}>{t("Select the areas you would like to explore.")}</Text>
         <Text style={s.count}>{domains.length} {t("selected")}</Text>

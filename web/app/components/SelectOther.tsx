@@ -1,6 +1,7 @@
 "use client";
 
 import { useT } from "../../i18n/useT";
+import MicButton from "./MicButton";
 
 const OTHER = "__other__";
 
@@ -20,9 +21,12 @@ export default function SelectOther({ id, label, options, value, onChange, place
         <option value={OTHER}>{tr("Other")}</option>
       </select>
       {(other || value === " ") && (
-        <input id={`${id}-other`} type="text" value={value.trim() === "" ? "" : value} autoFocus={value === " "}
+        <div className="voice-row">
+          <input id={`${id}-other`} type="text" value={value.trim() === "" ? "" : value} autoFocus={value === " "}
           onChange={(e) => onChange(e.target.value)} placeholder={placeholder ?? tr("Type here")}
           aria-label={`${label} (${tr("Other")})`} />
+          <MicButton onText={onChange} />
+        </div>
       )}
     </div>
   );

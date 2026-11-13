@@ -1,0 +1,24 @@
+# What counts as "application code" for the coverage figure.
+# Left out: one-off command-line tools run by hand (dataset builders, admin creation, smoke tests) and the
+# teammate's standalone demo server (app/engine/api.py), which the application does not use.
+[run]
+source = app
+omit =
+    app/scripts/*
+    */app/scripts/*
+    app/engine/api.py
+    */app/engine/api.py
+    */__pycache__/*
+
+[report]
+omit =
+    app/scripts/*
+    */app/scripts/*
+    app/engine/api.py
+    */app/engine/api.py
+show_missing = False
+skip_empty = True
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    raise NotImplementedError
